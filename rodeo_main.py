@@ -131,7 +131,7 @@ def __main__():
 #   Check for updates
 # =============================================================================
     try:
-        req = Request('http://update.ripprodeo.org')
+        req = Request('http://update.ripp.rodeo')
         req.add_header('user-agent', VERSION)
         mostRecentVersion = urlopen(req, timeout=2.5).read()
         if mostRecentVersion.decode().strip() != VERSION:
