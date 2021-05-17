@@ -1,5 +1,5 @@
 # RODEO 2
-Welcome to the new RODEO! Exhaustive documentation on how RODEO2 should be used can be found on the [RODEO website.](www.ripp.rodeo) The explanation below is a brief summary of how to use RODEO. Please report any bugs either via GitHub or by contacting the developers directly.
+Welcome to the new RODEO! Exhaustive documentation on how RODEO2 should be used can be found on the [RODEO website.](http://www.ripp.rodeo/index.html) The explanation below is a brief summary of how to use RODEO. Please report any bugs either via GitHub or by contacting the developers directly.
 
 Lastly, I have one important note. IF YOU WANT TO KILL RODEO/END THE PROCESS, USE Ctrl+C! Do not use Ctrl+Z or another combination, as these are not able to be processed properly and could result in [ZOMBIE PROCESSES](https://stackoverflow.com/questions/20688982/zombie-process-vs-orphan-process). 
 
