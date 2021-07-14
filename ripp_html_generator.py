@@ -248,7 +248,7 @@ def draw_cds_table(main_html, record):
             if cds.pfam_descr_list[0][0][:2] == "PF":
                 main_html.write("<td><a href='http://pfam.xfam.org/family/%s'>%s</a>" % (cds.pfam_descr_list[0][0], cds.pfam_descr_list[0][0]))
             elif cds.pfam_descr_list[0][0][:4] == "TIGR":
-                main_html.write("<td><a href='http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=%s'>%s</a>" % (cds.pfam_descr_list[0][0], cds.pfam_descr_list[0][0]))
+                main_html.write("<td><a href='https://www.ncbi.nlm.nih.gov/genome/annotation_prok/evidence/%s'>%s</a>" % (cds.pfam_descr_list[0][0], cds.pfam_descr_list[0][0]))
             else:
                 main_html.write("<td>%s" % (cds.pfam_descr_list[0][0]))
 #            main_html.write("-%s"%(cds.pfam_descr_list[0][3]))
@@ -257,7 +257,7 @@ def draw_cds_table(main_html, record):
                 if pfamid[:2] == "PF":
                     main_html.write("<br><a href='http://pfam.xfam.org/family/%s'>%s</a>" % (pfamid, pfamid))
                 elif pfamid[:4] == "TIGR":
-                    main_html.write("<br><a href='http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=%s'>%s</a>" % (pfamid, pfamid))
+                    main_html.write("<br><a href='https://www.ncbi.nlm.nih.gov/genome/annotation_prok/evidence/%s'>%s</a>" % (pfamid, pfamid))
                 else:
                     main_html.write("<br>%s" % (pfamid))
                     
