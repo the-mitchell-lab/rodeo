@@ -79,27 +79,41 @@ class Ripp(VirtualRipp):
         self.set_monoisotopic_mass()
         self.csv_columns = [self.leader, self.core, self.start, self.end]
         self.CUTOFF = CUTOFF
-        
+
     def set_split(self):
         #TODO add more regexes
-        match = re.search('(Y..P.L...G.....T)',self.sequence)
+        #change initial check to include L/V/I rather than only L
+        #added YxxP instances without L/G but remaining in frame
+        #remove ExxP and added WxxP in the three possible registers - could make it two seperate lines if prioritizing W in -15
+        #added the new recognition site - most common LxxLG xxxxx T x but L can also be I/V others too but keep it simple for now
+        #change the loop-tail size to prioritze size 5-15 the most common sizes amoung known lassos then 15-25 25 being the largest known then 26-30
+        match = re.search('(Y..P.(L|V|I)...G.....T)',self.sequence)
         motif = 1
         if match is None:
-            match = re.search('((W|E)..P.L.......T)', self.sequence)
+            match = re.search('(Y..P...........T)', self.sequence)
+            motif = 1
+        if match is None:
+            match = re.search('(W..P.[A-Z]{1-3}.......T)', self.sequence)
+            motif = 1
+        if match is None:
+            match = re.search('((L|V|I)..(L|V|I)G.....T)', self.sequence)
+            motif = 1
+        if match is None:
+            match = re.search('(Y..P.(L|V|I)...G.....(S|V|A))', self.sequence)
             motif = 1
         if match is None:
             motif = 2
-            match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{5,10}\*)', self.sequence + '*')
+            match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{5,15}\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{10,15}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{15,25}\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{15,20}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{26,30}\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{5,10}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{5,15}\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{10,15}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{15,25}\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{15,20}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{26,30}\*)', self.sequence + '*')
         if match is not None:
             if motif == 1:
                 self.split_index = match.end() + 1
@@ -113,6 +127,7 @@ class Ripp(VirtualRipp):
         
         self.leader = self.sequence[0:self.split_index]
         self.core = self.sequence[self.split_index:]
+            
                 
     def get_fimo_score(self):
         fimo_output = str(self.run_fimo_simple())
