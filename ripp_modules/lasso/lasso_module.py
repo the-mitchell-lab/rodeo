@@ -51,7 +51,7 @@ def write_csv_headers(output_dir):
     dir_prefix = output_dir + '/lasso/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
-    svm_headers = 'Precursor Index,classification,Calcd. Lasso Mass (Da), Distance,Within 500 nt?,Within 150 nt?,Further than 1000 nt?,Core has 2 or 4 Cys?,Leader longer than core?,Plausible lasso ring?,Leader has GxxxxxT motif?,Core starts with G?,Core and BGC in same direction?,Raito leader/core < 2 and > 0.5,Core starts with Cys and even number of Cys?,No Gly in core?,Core has at least 1 aromatic aa?,Core has at least 2 aromatic aa?,Core has odd number of Cys?,Leader has Trp?,Leader has Lys?,Leader has Cys?,Cluster has PF00733?,Cluster has PF05402?,Cluster has PF13471?,Leader has LxxxxxT motif?,Core has adjacent identical aas (doubles)?,Core length (aa),Leader length (aa),Precursor length (aa),Leader/core ratio,Number of Pro in first 9 aa of core?,Estimated core charge,Estimated leader charge,Estimated precursor charge,Absolute value of core charge,Absolute value of leader charge,Absolute value of precursor charge,LEADER A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,CORE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,FIRST CORE RESIDUE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, PRECURSOR A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,Motif1?,Motif2?,Motif3?,Motif4?,Motif5?,Motif6?,Motif7?,Motif8?,Motif9?,Motif10?,Motif11?,Motif12?,Motif13?,Motif14?,Motif15?,Motif16?,Total motifs hit,"Score Motif1","Score Motif2","Score Motif3","Score Motif4","Score Motif5","Score Motif6","Score Motif7","Score Motif8","Score Motif9","Score Motif10","Score Motif11","Score Motif12","Score Motif13","Score Motif14","Score Motif15","Score Motif16",Sum of MEME scores,No Motifs?,Alternate Start Codon?'
+    svm_headers = 'Precursor Index,classification,Calcd. Lasso Mass (Da), Distance,Within 500 nt?,Within 150 nt?,Further than 1000 nt?,Core has 2 or 4 Cys?,Leader longer than core?,Lasso ring length (-1 if not plausible),Leader has GxxxxxT motif?,Core starts with G?,Ratio leader/core < 2 and > 0.5,Core starts with Cys and even number of Cys?,No Gly in core?,Core has at least 1 aromatic aa?,Core has at least 2 aromatic aa?,Core has odd number of Cys?,Leader has Trp?,Leader has Lys?,Leader has Cys?,Cluster has PF00733?,Cluster has PF05402?,Cluster has PF13471?,Leader has LxxxxxT motif?,Core has adjacent identical aas (doubles)?,Core length (aa),Leader length (aa),Precursor length (aa),Leader/core ratio,Number of Gly in first 9 aa of core?,Number of Pro in first 9 aa of core?,CORE starts with A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Estimated core charge,Estimated leader charge,Estimated precursor charge,Absolute value of core charge,Absolute value of leader charge,Absolute value of precursor charge,LEADER A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,CORE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Aromatics (last 10aa),Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,FIRST CORE RESIDUE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, PRECURSOR A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,Motif1?,Motif2?,Motif3?,Motif4?,Motif5?,Motif6?,Motif7?,Motif8?,Motif9?,Motif10?,Motif11?,Motif12?,Motif13?,Motif14?,Motif15?,Motif16?,Total motifs hit,"Score Motif1","Score Motif2","Score Motif3","Score Motif4","Score Motif5","Score Motif6","Score Motif7","Score Motif8","Score Motif9","Score Motif10","Score Motif11","Score Motif12","Score Motif13","Score Motif14","Score Motif15","Score Motif16",Sum of MEME scores,No Motifs?,Alternate Start Codon?'
     svm_headers = svm_headers.split(',')
     features_headers = ['Accession_id', 'Genus/Species', 'Leader', 'Core', 'Start', 'End' , "Total Score", "Valid Precursor"] + svm_headers 
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
@@ -179,6 +179,35 @@ class Ripp(VirtualRipp):
     
     def set_score(self, pfam_dir, cust_hmm):
         scoring_csv_columns = []
+
+        if not (25 <= len(self.sequence) <= 100):
+            self.score -= 2
+
+        if self.sequence[-2] == "T":
+            self.score += 2
+
+        # TODO What does V/I/M/S allowed mean?
+        if any(c in self.sequence for c in "VIMS"):
+            self.score += 1
+
+        # TODO -1 in core?
+        if "P" == self.core[-1] or "P" == self.core[0]:
+            self.score -= 4
+
+        # TODO 1+ in core?
+        if self.core[-1] in "KRDE":
+            self.score -= 1
+
+        # TODO no score here
+        if sum(map(self.core[:10].count, ['G','P'])) > sum(map(self.core[-10:].count, ["G","P"])):
+            self.score += 0
+
+        # TODO 
+        match = re.search('[YW]..P', self.core)
+        if match is not None:
+            self.score += 2
+
+
         cPFam = "PF00733"
         ePFam = "PF05402"
         bPFam = "PF13471"
@@ -218,12 +247,10 @@ class Ripp(VirtualRipp):
                 if dist < 1000:
                     within_1000 = True
                     if dist < 500:
+                        self.score += 1
                         within_500 = True
                         if dist < 150:
                             within_150 = True
-                            self.score += 2
-                        else:
-                            self.score += 1
                         break
         if within_500:
             scoring_csv_columns.append(1)
@@ -233,13 +260,16 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
+
         if not within_1000:
+            self.score += -1
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
+
             
         if self.core.count("C") == 2 or self.core.count("C") == 4:
-            self.score += 1
+            self.score += 2
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
@@ -250,11 +280,23 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
             
-        if any(aa in self.core[6:9] for aa in ["D", "E"]): 
-            self.score += 1
-            scoring_csv_columns.append(1)
+        # Ring length
+        t1 = self.core.find("D", 6, 11)
+        t2 = self.core.find("E", 6, 11)
+        plausible_ring_length = t1
+        if plausible_ring_length != -1:
+            if t2 != -1:
+                plausible_ring_length = min(t1, t2)
         else:
-            scoring_csv_columns.append(0)
+            plausible_ring_length = t2
+        if 6 <= plausible_ring_length < 9: 
+            self.score += 5
+        elif plausible_ring_length == 9:
+            self.score += 2
+        elif plausible_ring_length == 10:
+            self.score += 1
+        scoring_csv_columns.append(plausible_ring_length)
+
             
         #Check for GxxxxxT motif
         match = re.search('G.{5}T', self.leader)
@@ -271,11 +313,11 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
             
         #check if peptide and lasso cyclase are on same strand +1
-        if cyclase_same_strand:
-            self.score += 1
-            scoring_csv_columns.append(1)
-        else:
-            scoring_csv_columns.append(0)
+        # if cyclase_same_strand:
+            # self.score += 1
+            # scoring_csv_columns.append(1)
+        # else:
+            # scoring_csv_columns.append(0)
             
         if 0.5 < len(self.leader)/float(len(self.core)) < 2:
             self.score += 1
@@ -289,7 +331,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
             
-        if "G" not in self.core:
+        if "G" not in self.core[:2]:
             self.score += -4
             scoring_csv_columns.append(1)
         else:
@@ -308,12 +350,13 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
             
         if self.core.count("C") % 2 == 1:
-            self.score += -2
+            # self.score += -2
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
         
         if "W" in self.leader:
+            # TODO "check for tryptophan"
             self.score += -1
             scoring_csv_columns.append(1)
         else:
@@ -324,6 +367,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
         if "C" in self.leader:
+            # TODO "leader has cystine"
             self.score += -2
             scoring_csv_columns.append(1)
         else:
@@ -332,15 +376,17 @@ class Ripp(VirtualRipp):
         if has_cPFam:
             scoring_csv_columns.append(1)
         else:
+            self.score += -5
             scoring_csv_columns.append(0)
         if has_ePFam:
             scoring_csv_columns.append(1)
         else:
+            self.score += -5
             scoring_csv_columns.append(0)
         if has_bPFam:
             scoring_csv_columns.append(1)
         else:
-            self.score += -2
+            self.score += -5
             scoring_csv_columns.append(0)
 
         match = re.search('L.{5}T', self.leader)
@@ -367,8 +413,12 @@ class Ripp(VirtualRipp):
         scoring_csv_columns.append(len(self.leader))
         scoring_csv_columns.append(len(self.sequence))
         scoring_csv_columns.append(float(len(self.leader))/len(self.core))
+        scoring_csv_columns.append(self.core[:9].count('G'))
         scoring_csv_columns.append(self.core[:9].count('P'))
         
+        #Counts of AAs in leader
+        scoring_csv_columns += [int(self.core[0] == aa) for aa in "ARDNCQEGHILKMFPSTWYV"]
+
         charge_dict = {"E": -1, "D": -1, "K": 1, "H": 1, "R": 1}
         scoring_csv_columns.append(sum([charge_dict[aa] for aa in self.core if aa in charge_dict]))
         #Estimated leader charge
@@ -399,6 +449,8 @@ class Ripp(VirtualRipp):
         scoring_csv_columns += [self.core.count(aa) for aa in "ARDNCQEGHILKMFPSTWYV"]
         #Aromatics in core
         scoring_csv_columns.append(sum([self.core.count(aa) for aa in "FWY"]))
+        #Aromatics in last 10 of core
+        scoring_csv_columns.append(sum([self.core[-10:].count(aa) for aa in "FWY"]))
         #Neg charged in core
         scoring_csv_columns.append(sum([self.core.count(aa) for aa in "DE"]))
         #Pos charged in core
