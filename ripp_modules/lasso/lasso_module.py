@@ -123,7 +123,7 @@ class Ripp(VirtualRipp):
             self.split_index = -1
         if self.split_index == -1 or abs(len(self.sequence)-self.split_index) < 5:
             self.valid_split = False
-            self.split_index = int(.25*len(self.sequence))
+            self.split_index = int(.5*len(self.sequence))
         
         self.leader = self.sequence[0:self.split_index]
         self.core = self.sequence[self.split_index:]
@@ -180,19 +180,23 @@ class Ripp(VirtualRipp):
     def set_score(self, pfam_dir, cust_hmm):
         scoring_csv_columns = []
 
-        if not (25 <= len(self.sequence) <= 100):
+        if not (25 <= len(self.sequence) <= 75):
             self.score -= 2
+        if len(self.sequence) >= 100:
+            self.score -= 3
 
-        if self.sequence[-2] == "T":
-            self.score += 2
+        if self.leader[-2] == "T":
+            self.score += 4
 
-        # TODO What does V/I/M/S allowed mean?
-        if any(c in self.sequence for c in "VIMS"):
+        if any(c == self.leader[-2] for c in "VIMS"):
             self.score += 1
 
-        # TODO -1 in core?
-        if "P" == self.core[-1] or "P" == self.core[0]:
+        if "P" == self.leader[-1]:
             self.score -= 4
+        if "P" == self.core[0]:
+            self.score -= 4
+
+
 
         # TODO 1+ in core?
         if self.core[-1] in "KRDE":
@@ -203,7 +207,7 @@ class Ripp(VirtualRipp):
             self.score += 0
 
         # TODO 
-        match = re.search('[YW]..P', self.core)
+        match = re.search('[YW]..P', self.leader)
         if match is not None:
             self.score += 2
 
@@ -235,9 +239,9 @@ class Ripp(VirtualRipp):
             if any(fam in pfam for fam in [cPFam, ePFam, bPFam]):
                 if bPFam in pfam:
                     has_bPFam = True
-                elif ePFam in pfam:
+                if ePFam in pfam:
                     has_ePFam = True
-                elif cPFam in pfam:
+                if cPFam in pfam:
                     if self.start < self.end and self.pfam_2_coords[pfam][0] < self.pfam_2_coords[pfam][0] or\
                        self.start > self.end and self.pfam_2_coords[pfam][0] > self.pfam_2_coords[pfam][0]:
                        cyclase_same_strand = True
@@ -251,7 +255,6 @@ class Ripp(VirtualRipp):
                         within_500 = True
                         if dist < 150:
                             within_150 = True
-                        break
         if within_500:
             scoring_csv_columns.append(1)
         else:
@@ -295,6 +298,8 @@ class Ripp(VirtualRipp):
             self.score += 2
         elif plausible_ring_length == 10:
             self.score += 1
+        elif plausible_ring_length == -1:
+            self.score -= 6
         scoring_csv_columns.append(plausible_ring_length)
 
             
