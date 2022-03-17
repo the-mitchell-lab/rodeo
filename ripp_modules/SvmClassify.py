@@ -84,8 +84,8 @@ class SVMRunner(object):
             self.C_option = 2
             self.gamma_option = 1E-5
         elif peptide_type == 'lasso':
-            self.C_option = 25
-            self.gamma_option = 2.75E-06
+            self.C_option = 6.8986
+            self.gamma_option = 1E-4
         elif peptide_type == 'thio':        
             self.C_option = 283117
             self.gamma_option = 1E-9

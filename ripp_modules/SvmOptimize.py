@@ -57,6 +57,7 @@ import csv
 import sys
 
 from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from sklearn.model_selection import cross_val_score
 from sklearn import metrics
@@ -116,11 +117,14 @@ def main():
     print("Data has been scaled" )
     test_results = []
     
+    C_option = gamma_option = 1
     for fold in folds_validation:
-        for C_option in C_options:
-            for gamma_option in gamma_options:
-                print(C_option, gamma_option)
+        # for C_option in C_options:
+            # for gamma_option in gamma_options:
+                # print(C_option, gamma_option)
                 clf = svm.SVC(kernel=kernel_option,class_weight=class_weight_option,C=C_option,gamma=gamma_option)
+                clf = RandomForestClassifier(n_estimators=100, min_samples_split=3)
+                clf.fit(training_data_refined, training_data_classifications)
                 prec = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='precision')
                 recd = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='recall')
                 f1we = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='f1')

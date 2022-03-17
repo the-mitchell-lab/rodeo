@@ -140,6 +140,7 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id):
             ret_record.cluster_accession = record.id
             ret_record.cluster_sequence = record.seq
             ret_record.cluster_genus_species = record.annotations['organism'] #TODO verify
+            SeqIO.write([record], f"{nuccore_accession_id}.fasta", "fasta")
             for feature in record.features:
                 if feature.type == 'CDS':
                     inferred = False

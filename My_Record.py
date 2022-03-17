@@ -264,48 +264,78 @@ class My_Record(object):
     def set_intergenic_orfs(self, min_aa_seq_length, max_aa_seq_length, overlap):
         """Examines intergenic sequences to determine whether or not there are ORFs
         that code for valid aa sequences"""
-        identifier = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        SeqIO.write([SeqRecord(
-            Seq(self.cluster_sequence[self.window_start:self.window_end]),
-            id=self.cluster_accession,
-            name="prodigal")], f"/tmp/{self.cluster_accession}_{identifier}.fasta", "fasta")
-        os.system(f"prodigal -q -i /tmp/{self.cluster_accession}_{identifier}.fasta -p meta -a /tmp/{self.cluster_accession}_{identifier}_ig.fasta -f sco -o /dev/null")
-        all_orfs = SeqIO.parse(f"/tmp/{self.cluster_accession}_{identifier}_ig.fasta", "fasta")
-        for orf_record in all_orfs:
-            if not (min_aa_seq_length < len(orf_record.seq) - 1 < max_aa_seq_length):
-                continue
-            _, start, stop, strand, _ = orf_record.description.split('#' )
-            start = self.window_start + int(start)
-            stop =  self.window_start + int(stop)
-            strand = int(strand)
-            if strand == -1:
-                start, stop = stop, start
-                stop = stop - 1
-            else:
-                start = start - 1
-            assert abs(start - stop) % 3 == 0
-            found_overlap = False
-            for cds in self.CDSs:
-                cds_s = min(cds.start, cds.end)
-                cds_e = max(cds.start, cds.end)
-                orf_s = min(start, stop)
-                orf_e = max(start, stop)
-                if cds_s == orf_s and cds_e == orf_e:
-                    found_overlap = True
-                    break
-                elif cds_s < orf_s < cds_e and cds_e - orf_s > overlap:
-                    found_overlap = True
-                    break
-                elif cds_s < orf_e < cds_e and orf_e - cds_s > overlap:
-                    found_overlap = True
-                    break
-
-            if not found_overlap:
-                self.intergenic_orfs.append(Sub_Seq("ORF", 
-                    str(orf_record.seq)[:-1], 
-                    start,
-                    stop,
-                    strand))
+        for strand, sequence in [(1, self.cluster_sequence),
+                                         (-1, self.cluster_sequence.reverse_complement())]:
+            for intergenic_seq in self.intergenic_seqs:
+                #Do start codons iteratively to ensure you don't skip any
+                #In theory, should only be a 3x slowdown in runtime MAX.
+                for start_codon in self.start_codons:
+                    if strand == -1:
+                        next_start = max(len(sequence) - intergenic_seq.end - overlap, 
+                                         len(sequence)-self.window_end)
+                        intergenic_seq_end = min(len(sequence) - intergenic_seq.start + overlap,
+                                                 len(sequence) - self.window_start)
+                    else:
+                        next_start = max(intergenic_seq.start - overlap, self.window_start)
+                        intergenic_seq_end = min(self.window_end, intergenic_seq.end + overlap)
+                    start = 0
+                    #Stay in the loop until we can't find a stop codon
+                    while start < intergenic_seq_end:
+                        start = sequence.find(start_codon, next_start)
+                        if start == -1:
+                            #Can't find any more of this codon
+                            break
+                        next_start = start + 1
+                        end = start 
+                        found_stop = False
+                        while end < len(sequence) and end < intergenic_seq_end:
+                            codon = sequence[end:end+3]
+                            if str(codon) in self.stop_codons:
+                                found_stop = True
+                                break
+                            else:
+                                end = end + 3
+                        #If we didn't find a stop codon, do what?
+                        if not found_stop:
+                            continue
+                        if not (min_aa_seq_length < (end-start)/3 < max_aa_seq_length):
+                            continue
+                        nt_subsequence = sequence[start:end] #Add 3 if you want to inclue stop codon
+                        aa_sequence = nt_subsequence.translate(11)
+                        #Get nucleotide coords for original strand
+                        if strand == -1:
+                            old_end = end
+                            end = len(sequence) - start
+                            old_start = len(sequence) - old_end - 3
+                            potential_orf = Sub_Seq('ORF',
+                                                         aa_sequence,
+                                                         end,
+                                                         old_start,
+                                                         -1)
+                        else:
+                            end = end + 3
+                            potential_orf = Sub_Seq('ORF',
+                                                         aa_sequence,
+                                                         start,
+                                                         end,
+                                                         1)
+                        if potential_orf.start > potential_orf.end:
+                            upstream_sequence = str(self.cluster_sequence[potential_orf.start+4:potential_orf.start+13].reverse_complement())
+                        else:
+                            upstream_sequence = str(self.cluster_sequence[potential_orf.start-13:potential_orf.start+4])
+                        potential_orf.upstream_sequence = upstream_sequence
+                        self.intergenic_orfs.append(potential_orf)
+                        
+        self.intergenic_orfs.sort(key=lambda seq: seq.start)
+        #Get rid of duplicates. Duplicate ORFs will appear when the overlap is
+        #set such that two intergenic sequences are expanded to a point where 
+        #they share nucleotides with eachother
+        i = 1
+        while i < len(self.intergenic_orfs):
+            #print(self.intergenic_orfs[i].sequence)
+            if self.intergenic_orfs[i].start == self.intergenic_orfs[i-1].start:
+                del self.intergenic_orfs[i]
+            i += 1
         return
      
     
