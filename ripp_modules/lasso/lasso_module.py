@@ -80,7 +80,45 @@ class Ripp(VirtualRipp):
         self.csv_columns = [self.leader, self.core, self.start, self.end]
         self.CUTOFF = CUTOFF
 
+
     def set_split(self):
+        scores = [(1,int(.25*len(self.sequence)))]*2
+        fimo_output = self.run_fimo_simple("{}/wxxp_fimo.txt".format(FILE_DIR))
+        fimo_output = fimo_output.split('\n')
+        valid_split = False
+        if len(fimo_output) > 1:
+            for line in fimo_output[1:]:
+                line = line.split('\t')
+                if len(line) <= 1:
+                    continue
+                if float(line[7]) < scores[0][0]:
+                    scores[0] = (float(line[7]), int(line[4]))
+            valid_split = True    
+        fimo_output = self.run_fimo_simple("{}/yxxp_fimo.txt".format(FILE_DIR)).split('\n')
+        if len(fimo_output) > 1:
+            for line in fimo_output[1:]:
+                line = line.split('\t')
+                if len(line) <= 1:
+                    continue
+                if float(line[7]) < scores[1][0]:
+                    scores[1] = (float(line[7]), int(line[4]) + (1 if line[1] in ("MEME-2", "MEME-4") else 0))
+            valid_split = True    
+        scores = sorted(scores)
+        self.valid_split = valid_split
+        self.split = scores[0][1]
+        if self.split < 4 or self.split > len(self.sequence) - 4:
+            self.split = int(.25*len(self.sequence))
+            self.valid_split = False
+        self.leader = self.sequence[:self.split]
+        self.core = self.sequence[self.split:]
+        if not self.valid_split:
+            self.set_split2()
+        else:
+            print("SPLIT BY FIMO")
+
+            
+
+    def set_split2(self):
         #TODO add more regexes
         #change initial check to include L/V/I rather than only L
         #added YxxP instances without L/G but remaining in frame
@@ -182,8 +220,8 @@ class Ripp(VirtualRipp):
 
         if not (25 <= len(self.sequence) <= 75):
             self.score -= 2
-        if len(self.sequence) >= 100:
-            self.score -= 3
+        if len(self.sequence) > 100:
+            self.score -= 5
 
         if self.leader[-2] == "T":
             self.score += 4
