@@ -57,7 +57,12 @@ import csv
 import sys
 
 from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
+import scipy.stats as stats
+from sklearn.utils.fixes import loguniform
+
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.model_selection import cross_val_score
 from sklearn import metrics
 
@@ -84,9 +89,22 @@ gamma_base = 10
 gamma_steps = 9
 gamma_options = np.logspace(gamma_min,gamma_max,num=gamma_steps,base=gamma_base,dtype=float)
 class_weight_option = 'balanced'
-folds_validation = [5]
+folds_validation = [10]
 
 
+def report(results, n_top=3):
+    for i in range(1, n_top + 1):
+        candidates = np.flatnonzero(results["rank_test_score"] == i)
+        for candidate in candidates:
+            print("Model with rank: {0}".format(i))
+            print(
+                "Mean validation score: {0:.3f} (std: {1:.3f})".format(
+                    results["mean_test_score"][candidate],
+                    results["std_test_score"][candidate],
+                )
+            )
+            print("Parameters: {0}".format(results["params"][candidate]))
+            print("")
     
     
 def main():
@@ -116,20 +134,32 @@ def main():
     print("Data has been scaled" )
     test_results = []
     
-    for fold in folds_validation:
-        for C_option in C_options:
-            for gamma_option in gamma_options:
-                print(C_option, gamma_option)
-                clf = svm.SVC(kernel=kernel_option,class_weight=class_weight_option,C=C_option,gamma=gamma_option)
-                prec = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='precision')
-                recd = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='recall')
-                f1we = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='f1')
-                scor = prec.mean() * recd.mean()
-                print('Using %d fold, %.4E C, %.4E gamma: %0.4f precision, %0.4f recall, %0.4f f1, %0.4f score' % (fold, C_option, gamma_option, prec.mean(), recd.mean(), f1we.mean(), scor))
-                test_results.append([kernel_option,fold,C_option,gamma_option,class_weight_option,prec.mean(),recd.mean(),f1we.mean(),scor])
+    # C_option = gamma_option = 1
+    # for fold in folds_validation:
+        # for C_option in C_options:
+            # for gamma_option in gamma_options:
+                # # print(C_option, gamma_option)
+                # clf = svm.SVC(kernel=kernel_option,class_weight=class_weight_option,C=C_option,gamma=gamma_option)
+                # # clf = RandomForestClassifier(n_estimators=250, min_samples_split=2)
+                # clf.fit(training_data_refined, training_data_classifications)
+                # prec = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='precision')
+                # recd = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='recall')
+                # f1we = cross_val_score(clf, training_data_refined, training_data_classifications, cv=fold, scoring='f1')
+                # scor = prec.mean() * recd.mean()
+                # print('Using %d fold, %.4E C, %.4E gamma: %0.4f precision, %0.4f recall, %0.4f f1, %0.4f score' % (fold, C_option, gamma_option, prec.mean(), recd.mean(), f1we.mean(), scor))
+                # test_results.append([kernel_option,fold,C_option,gamma_option,class_weight_option,prec.mean(),recd.mean(),f1we.mean(),scor])
+    param_distribution = {'C': loguniform(1e-2, 1e15),
+         'gamma': loguniform(1e-10, .1),
+         'kernel': ['rbf'],
+         'class_weight':['balanced', None]}
+    clf = svm.SVC(kernel=kernel_option,class_weight=class_weight_option)
+    random_search = RandomizedSearchCV(clf, param_distributions=param_distribution, cv=10, n_jobs=40, n_iter=100, scoring="f1")
+    random_search.fit(training_data_refined, training_data_classifications)
+    report(random_search.cv_results_)
+
     
-    best = max(test_results, key=lambda x: x[-2])
-    print("C: {}, G: {}, f1: {}".format(best[2], best[3], best[-2]))
+    # best = max(test_results, key=lambda x: x[-2])
+    # print("C: {}, G: {}, f1: {}".format(best[2], best[3], best[-2]))
     
     return
 
