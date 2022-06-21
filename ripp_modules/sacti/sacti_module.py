@@ -52,7 +52,7 @@ def write_csv_headers(output_dir):
     dir_prefix = output_dir + '/sacti/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
-    svm_headers = 'Precursor Index,Classification,Precursor peptide mass,Leader peptide mass,Core peptide mass,Distance,Within 500 nt?,Within 150 nt?,Further than 1000 nt?,Ratio of N-term to 1st C 0.25<x<0.60,Ratio of N-term to 1st C <0.25 or >0.60,Three or more C,Less than 3 C,CXXXXXC,CXXXC,CXXC,CXC,CC,CCC,No cys in last 1/4th?,"2 Cys in first 2/3rds and 1 Cys in last 1/3rd",Peptide matches SboA hmm,Peptide matches SkfA hmm,Peptide matches SCIFF hmm,Cluster has PF05402 (PqqD/RRE),Cluster has PF13186 (SPASM),PF04055 (rSAM) domain start,BOOL peptidase PF05193,BOOL S8 peptidase PF00082,BOOL S41 peptidase PF03572,BOOL M16 peptidase PF00675,BOOL ABC trans PF00005,BOOL ABC mem PF00664,BOOL response reg PF00072,BOOL maj facilit PF07690,BOOL ATPase PF13304,BOOL Fer4_12 PF13353,BOOL rSAM PF04055,no  recognized peptidase,C-terminal portion is < 0.35 or > 0.65,C-terminal portion is > 0.35 and < 0.65,SS profile sum > 1,Leader length (aa),Precursor length (aa),Core length (aa),Core/precursor ratio,Core/leader ratio,Ratio of N-terminus to first Cys,number of CxnC,avg dist between CxnC,Ratio from last CxnC to C-terminus,SS profile 1 aa,SS profile 2 aa,SS profile 3 aa,SS profile 4 aa,SS profile 5 aa,SS profile 6 aa,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,peptidase PF05193,CAAX immunity PF02517,S8 peptidase PF00082,S41 peptidase PF03572,M16 peptidase PF00675,M50 peptidase PF02163,S9 peptidase PF00326,ABC trans PF00005,ABC mem PF00664,response reg PF00072,maj facilit PF07690,HATPase PF02518,ATPase PF13304,Fer4_12 PF13353,rSAM PF04055,Length of rSAM maturase'
+    svm_headers = 'Precursor Index,Classification,Precursor peptide mass,Leader peptide mass,Core peptide mass,Distance,Within 500 nt?,Within 150 nt?,Further than 1000 nt?,Ratio of N-term to 1st C 0.25<x<0.60,Ratio of N-term to 1st C <0.25 or >0.60,Three or more C,Two or more C,Less than 2 C,CXXXXXC,CXXXC,CXXC,CXC,CC,CCC,WxxP,Has RRE,Peptide matches SboA hmm,Peptide matches SkfA hmm,Peptide matches SCIFF hmm,Cluster has PF13186 (SPASM),Cluster has PF13353 (Fe4_12),Has peptidase PF05193,Has S8 peptidase PF00082,Has S41 peptidase PF03572,Has M16 peptidase PF00675,Has ABC trans PF00005,Has ABC mem PF00664,Has response reg PF00072,Has maj facilit PF07690,Has ATPase PF13304,Has rSAM PF04055,C-terminal portion is < 0.35 or > 0.65,C-terminal portion is > 0.35 and < 0.65,SS profile sum > 1,Leader length (aa),Precursor length (aa),Core length (aa),Core/precursor ratio,Core/leader ratio,Ratio of N-terminus to first Cys,number of CxnC,avg dist between CxnC,Ratio from last CxnC to C-terminus,SS profile 1 aa,SS profile 2 aa,SS profile 3 aa,SS profile 4 aa,SS profile 5 aa,SS profile 6 aa,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,peptidase PF05193,CAAX immunity PF02517,S8 peptidase PF00082,S41 peptidase PF03572,M16 peptidase PF00675,M50 peptidase PF02163,S9 peptidase PF00326,ABC trans PF00005,ABC mem PF00664,response reg PF00072,maj facilit PF07690,HATPase PF02518,ATPase PF13304,Fer4_12 PF13353,rSAM PF04055,Length of rSAM maturase'
     svm_headers = svm_headers.split(',')
     features_headers = ["Accession_id", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
@@ -69,12 +69,14 @@ class Ripp(VirtualRipp):
                  end, 
                  sequence,
                  upstream_sequence,
-                 pfam_2_coords):
+                 pfam_2_coords,
+                 has_rre):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
-                                     pfam_2_coords)
+                                     pfam_2_coords,
+                                     has_rre)
         self.peptide_type = 'sacti'
         self.set_split()
 #        self.set_monoisotopic_mass()
@@ -147,26 +149,28 @@ class Ripp(VirtualRipp):
         else:
             tabs.append(0)
         
-        #Ratio of N-term to 1st Cys 0.25<x<0.60; Ratio of N-term to 1st Cys <0.25 or >0.60
-        if "C" not in self.sequence:
+        #Ratio of N-term to 1st Cys >0.3; Ratio of N-term to 1st Cys <0.3
+        if "C" not in self.sequence or self.sequence.find("C") / float(len(self.sequence)) <= 0.30:
             score -= 2
             tabs += [0,1]
-        elif 0.25 <= self.sequence.find("C") / float(len(self.sequence)) <= 0.60:
+        else: 
+            score += 2
+            tabs += [1,0]
+        if self.sequence.count("C") >= 3:
+            score += 2
+            tabs.append(1)
+        else:
+            tabs.append(0)
+        #Two or more Cys; Less than 2 Cys
+        if self.sequence.count("C") >= 2:
             score += 2
             tabs += [1,0]
         else:
-            score -= 2
-            tabs += [0,1]
-        #Three or more Cys; Less than 3 Cys
-        if self.sequence.count("C") >= 3:
-            score += 4
-            tabs += [1,0]
-        else:
-            score -= 4
+            score -= 6
             tabs += [0,1]
         #CxC/CxxC/CxxxC/CxxxxxC; #CC/CCC
-        motifs = (('C[ARNDBCEQZGHILKMFPSTWYV]{5}C', 2), ('C[ARNDBCEQZGHILKMFPSTWYV]{3}C', 1), \
-           ('C[ARNDBCEQZGHILKMFPSTWYV]{2}C', 1),('C[ARNDBCEQZGHILKMFPSTWYV]{1}C', 2), \
+        motifs = (('C[ARNDBCEQZGHILKMFPSTWYV]{5}C', 2), ('C[ARNDBCEQZGHILKMFPSTWYV]{3}C', 2), \
+           ('C[ARNDBCEQZGHILKMFPSTWYV]{2}C', 2),('C[ARNDBCEQZGHILKMFPSTWYV]{1}C', 2), \
            ('CC', -2), ('CCC', -2))
         for motif in motifs:
             if re.search(motif[0], self.core) != None:
@@ -174,21 +178,35 @@ class Ripp(VirtualRipp):
                 tabs.append(1)
             else:
                 tabs.append(0)
-        #No Cys in last 1/4th?
-        quarter_length = int(len(self.sequence) / 4) 
-        if not "C" in self.sequence[:-quarter_length]:
-            score += 1
-            tabs.append(1)
-        else:
-            score -= 1
-            tabs.append(0)
-        #2 Cys in first 2/3rds of precursor, 1 Cys in last 1/3rd of precursor
-        two_thirds = int(len(self.sequence) / 3) * 2
-        if self.sequence[:two_thirds].count("C") == 2 and self.sequence[two_thirds:].count("C") == 1:
-            score += 1
+        # WxxP
+        if re.search("W..P", self.sequence):
+            score += 2
             tabs.append(1)
         else:
             tabs.append(0)
+        # #No Cys in last 1/4th?
+        # quarter_length = int(len(self.sequence) / 4) 
+        # if not "C" in self.sequence[:-quarter_length]:
+            # score += 1
+            # tabs.append(1)
+        # else:
+            # score -= 1
+            # tabs.append(0)
+        # #2 Cys in first 2/3rds of precursor, 1 Cys in last 1/3rd of precursor
+        # two_thirds = int(len(self.sequence) / 3) * 2
+        # if self.sequence[:two_thirds].count("C") == 2 and self.sequence[two_thirds:].count("C") == 1:
+            # score += 1
+            # tabs.append(1)
+        # else:
+            # tabs.append(0)
+
+        if self.has_rre:
+            score += 2
+            tabs.append(1)
+        else:
+            tabs.append(0)
+
+
             
         precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_hmm, cust_hmm)
         pfams = []
@@ -213,28 +231,25 @@ class Ripp(VirtualRipp):
             tabs.append(1)
         else:
             tabs.append(0)
-        #Cluster has PqqD/RRE (PF05402)
-        if "PF05402" in pfams:
-            score += 1
+        # Cluster has PqqD/RRE (PF05402)
+        # if "PF05402" in pfams:
+            # score += 1
+            # tabs.append(1)
+        # else:
+            # tabs.append(0)
+        #Cluster has SPASM domain (PF13186)
+        if "PF13186" in pfams:
+            score += 2
             tabs.append(1)
         else:
             tabs.append(0)
-        #Cluster has SPASM domain (PF13186)
-        if "PF13186" in pfams:
-            score += 1
+        #Cluster has Fe4_12 domain (PF13353)
+        if "PF13353" in pfams:
+            score += 2
             tabs.append(1)
         else:
             tabs.append(0)
              
-        #TODO Search to see if start of rSAM hit  is at a nuc > 80.
-        #PF04055 (rSAM) domain start
-        if "PF04055" in pfams:
-            score += 1
-            tabs.append(1)
-        else:
-            tabs.append(0)
-        #####
-        
         pfams = []
         for pfam_dot in self.pfam_2_coords.keys():
             pfams.append(pfam_dot.split('.')[0])
@@ -274,21 +289,9 @@ class Ripp(VirtualRipp):
             tabs.append(1)
         else:
             tabs.append(0)
-        #Cluster has Fer4_12 (PF13353)
-        if "PF13353" in pfams:
-            score += 1
-            tabs.append(1)
-        else:
-            tabs.append(0)
         #Cluster has rSAM (PF04055)
         if "PF04055" in pfams or "TIGR03975" in pfams:
             score += 2
-            tabs.append(1)
-        else:
-            tabs.append(0)
-        #Cluster has no recognized peptidase
-        if no_peptidase:
-            score -= 2
             tabs.append(1)
         else:
             tabs.append(0)
@@ -296,7 +299,7 @@ class Ripp(VirtualRipp):
         #C-terminal portion is < 0.35 or > 0.65; C-terminal portion is defined as the part from the last cysteine in the last identified Cx(n)C motif to the C-terminus
         #And criterion "C-terminal portion is > 0.35 and < 0.65"
         if "C" not in self.sequence:
-            score -= 2
+            # score -= 2
             tabs += [1,0]
         else:
             last_motif_C = 0
@@ -306,10 +309,10 @@ class Ripp(VirtualRipp):
                     last_motif_C = len(self.sequence[:index]) + 1
                 index -= 1
             if not (0.35 <= last_motif_C / float(len(self.sequence)) <= 0.65):
-                score -= 2
+                # score -= 2
                 tabs += [1,0]
             else:
-                score += 3
+                # score += 3
                 tabs += [1,0]
         #TODO no need for Sactiscout.py? SS profile var? ;anti-smash
         lanlower = 1
@@ -318,7 +321,7 @@ class Ripp(VirtualRipp):
         rex4 = re.compile(cysrex)
         totrings = rex4.findall(self.core)
         if len(totrings) > 1:
-            score += 2
+            # score += 2
             tabs.append(1)
         else:
             tabs.append(0)
