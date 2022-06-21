@@ -164,9 +164,6 @@ def get_radar_score(sequence):
         try:
             with open("/tmp/" + pid + "RADAR.fasta", 'w+') as tfile:
                 tfile.write(">query\n%s" % (sequence))
-            if WEB_TOOL:
-                raise NotImplementedError
-            else:
                 command = ["radar.py -a /tmp/" + pid + "RADAR.fasta"]
             try:
                 out, err, retcode = execute(command)
