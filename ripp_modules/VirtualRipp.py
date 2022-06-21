@@ -210,7 +210,7 @@ class VirtualRipp(object):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
-                 has_rre):
+                 has_rre=False):
         self.start = start
         self.end = end
         self.sequence = sequence
