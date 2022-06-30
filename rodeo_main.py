@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.7
 # -*- coding: utf-8 -*-
 #==============================================================================
 # Copyright (C) 2017 Bryce L. Kille
@@ -42,8 +42,10 @@ import sys
 import socket
 from shutil import copyfile
 try:
+    import urllib
     from urllib.request import Request, urlopen  # Python 3
 except ImportError:
+    import urllib2
     from urllib2 import Request, urlopen  # Python 2
 
 WEB_TOOL = False
