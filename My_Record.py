@@ -41,6 +41,10 @@ from Bio.SeqRecord import SeqRecord
 from ripp_modules.VirtualRipp import execute
 from rodeo_main import VERBOSITY
 from ripp_modules.VirtualRipp import get_radar_score
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+import random, string
 
 logger = logging.getLogger(__name__)
 logger.setLevel(VERBOSITY)
@@ -299,13 +303,13 @@ class My_Record(object):
                 elif cds_s < orf_e < cds_e and orf_e - cds_s > overlap:
                     found_overlap = True
                     break
+
             if not found_overlap:
                 self.intergenic_orfs.append(Sub_Seq("ORF", 
                     str(orf_record.seq)[:-1], 
                     start,
                     stop,
                     strand))
-
                         
         self.intergenic_orfs.sort(key=lambda seq: seq.start)
         #Get rid of duplicates. Duplicate ORFs will appear when the overlap is
