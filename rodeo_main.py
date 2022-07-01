@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #==============================================================================
 # Copyright (C) 2017 Bryce L. Kille
