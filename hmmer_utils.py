@@ -153,9 +153,9 @@ def get_hmmer_info(query, primary_hmm, cust_hmm, n=5, e_cutoff=.001, query_is_ac
                 pfam_temp_list.append(pfam_desc_list[i])
                 
             pfam_desc_list = sorted(pfam_temp_list, key=lambda entry: entry[2])
-        os.remove(pid_prefix+'pFamInfo.tmp.tab')
-        os.remove(pid_prefix+"fasta_file.tmp.fasta")
-        os.remove(pid_prefix+"hmm_out.tmp.tab")
+        # os.remove(pid_prefix+'pFamInfo.tmp.tab')
+        # os.remove(pid_prefix+"fasta_file.tmp.fasta")
+        # os.remove(pid_prefix+"hmm_out.tmp.tab")
         return pfam_desc_list
     except KeyboardInterrupt:
         try:

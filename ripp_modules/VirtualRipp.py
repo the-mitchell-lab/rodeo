@@ -34,6 +34,8 @@ import os
 import subprocess
 import importlib
 import logging
+import random
+import string
 import socket
 import ripp_modules.SvmClassify as svmc
 from rodeo_main import VERBOSITY
@@ -164,9 +166,6 @@ def get_radar_score(sequence):
         try:
             with open("/tmp/" + pid + "RADAR.fasta", 'w+') as tfile:
                 tfile.write(">query\n%s" % (sequence))
-            if WEB_TOOL:
-                raise NotImplementedError
-            else:
                 command = ["radar.py -a /tmp/" + pid + "RADAR.fasta"]
             try:
                 out, err, retcode = execute(command)
@@ -210,11 +209,13 @@ class VirtualRipp(object):
                  end,
                  sequence,
                  upstream_sequence,
-                 pfam_2_coords):
+                 pfam_2_coords,
+                 has_rre=False):
         self.start = start
         self.end = end
         self.sequence = sequence
         self.upstream_sequence = upstream_sequence
+        self.has_rre = has_rre
         #This line is here to ensure that the type is always set.
         #No peptide type should ever be left virtual. 
         self.peptide_type = 'virtual' 
@@ -295,7 +296,8 @@ class VirtualRipp(object):
             except OSError:
                 pass
         return out.decode("utf-8")
-    
+
+        
     def get_min_dist(self, coords_list):
         if coords_list == []:
             return 66666
