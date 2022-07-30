@@ -4,11 +4,13 @@ Welcome to the new RODEO! Exhaustive documentation on how RODEO2 should be used 
 Lastly, I have one important note. IF YOU WANT TO KILL RODEO/END THE PROCESS, USE Ctrl+C! Do not use Ctrl+Z or another combination, as these are not able to be processed properly and could result in [ZOMBIE PROCESSES](https://stackoverflow.com/questions/20688982/zombie-process-vs-orphan-process). 
 
 ## Requirements
-* numpy 1.11
-* SciKit Learn 0.19
-* Meme Suite 4.12
-* Biopython 1.69
-* HMMER 3.1b2
+* numpy >=1.11
+* SciKit Learn >=0.19
+* Meme Suite >=4.12
+* Biopython >=1.69
+* HMMER >=3.1b2
+* [RREFinder](https://github.com/Alexamk/RREFinder)
+* [RADAR](https://github.com/AndreasHeger/radar)
 
 ## Installation
 
