@@ -72,31 +72,33 @@ def get_gb_handles(prot_accession_id):
         try:
             record = Entrez.read(Entrez.esearch("protein",term=prot_accession_id))
             total_count = record["Count"]
-            if int(total_count) < 1:
-                return -1
-                
-            IdList = record["IdList"]
-            time.sleep(0.5)
-            link_records = Entrez.read(Entrez.elink(dbfrom="protein",db="nuccore",id=IdList))
-            nuccore_ids=[]
-            if len(link_records[0]['LinkSetDb']) == 0:
-                return -2
-            for record in link_records[0]['LinkSetDb'][0]['Link']:
-                nuccore_ids.append(record['Id']) 
-                
-            search_handle     = Entrez.epost(db="nuccore", id=",".join(nuccore_ids))
-            search_results    = Entrez.read(search_handle)
-            webenv,query_key  = search_results["WebEnv"], search_results["QueryKey"] 
-            
-            batchSize = 1
-            
-            handles = []
-            for start in range(len(nuccore_ids)):
+            if int(total_count) >= 1:
+                IdList = record["IdList"]
                 time.sleep(0.5)
-                orig_handle = Entrez.efetch(db="nuccore", dbfrom="protein", rettype="gbwithparts", 
-                                               retmode="text", retstart=start, retmax=batchSize, 
-                                               webenv=webenv, query_key=query_key)
-                handles.append(orig_handle)
+                link_records = Entrez.read(Entrez.elink(dbfrom="protein",db="nuccore",id=IdList))
+                nuccore_ids=[]
+                if len(link_records[0]['LinkSetDb']) == 0:
+                    return -2
+                for record in link_records[0]['LinkSetDb'][0]['Link']:
+                    nuccore_ids.append(record['Id']) 
+                    
+                search_handle     = Entrez.epost(db="nuccore", id=",".join(nuccore_ids))
+                search_results    = Entrez.read(search_handle)
+                webenv,query_key  = search_results["WebEnv"], search_results["QueryKey"] 
+                
+                batchSize = 1
+                
+                handles = []
+                for start in range(len(nuccore_ids)):
+                    time.sleep(0.5)
+                    orig_handle = Entrez.efetch(db="nuccore", dbfrom="protein", rettype="gbwithparts", 
+                                                   retmode="text", retstart=start, retmax=batchSize, 
+                                                   webenv=webenv, query_key=query_key)
+                    handles.append(orig_handle)
+            else:
+                prot_record = list(SeqIO.parse(Entrez.efetch("protein",id=prot_accession_id, rettype="gb", retmode="text"), "genbank"))[0]
+                nuc_accession_id = prot_record.annotations["db_source"].split(' ')[1]
+                handles = [Entrez.efetch("nuccore",id=nuc_accession_id, rettype="gb", retmode="text")]
             return handles
         except KeyboardInterrupt:
             raise KeyboardInterrupt
