@@ -32,6 +32,13 @@
 import hmmer_utils
 import csv, subprocess, os
 import logging 
+import random
+import string
+import pathlib
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from ripp_modules.VirtualRipp import execute
 from rodeo_main import VERBOSITY
 from ripp_modules.VirtualRipp import get_radar_score
 from Bio import SeqIO
@@ -168,6 +175,65 @@ class My_Record(object):
                     self.pfam_2_coords[annot[0]] = []
                 self.pfam_2_coords[annot[0]].append((CDS.start, CDS.end))
                 
+    def run_RREFinder(self, sequence, name, working_dir):
+    #TODO change to temp file
+        try:
+            with open(working_dir + "RRE.fasta", 'w+') as tfile:
+                tfile.write(">%s\n%s\n" % (name, sequence))
+            command = ["RRE.py rre -o " + working_dir + " -i " + working_dir +  "RRE.fasta -t fasta -m precision"]
+            try:
+                out, err, retcode = execute(command)
+            except OSError:
+                logger.error("Could not run RREFinder")
+                try:
+                    os.remove(working_dir +"RRE.fasta")
+                except OSError:
+                    pass
+                return 
+            if retcode != 0:
+                logger.error('RREFinder returned %d: %r', retcode,
+                                err)
+                return 
+            # try:
+                # os.remove(working_dir + "RRE.fasta")
+            # except OSError:
+                    # pass
+        except KeyboardInterrupt:
+            try:
+                os.remove(working_dir + "RRE.fasta")
+                return
+            except OSError:
+                pass
+        ret = []
+        try: 
+            with open(working_dir + "/rre/rre_rrefam_results.txt", 'r') as rre_results:
+                results = csv.DictReader(rre_results, delimiter='\t')
+                for line in results:
+                    ret.append(dict(line))
+        except:
+            ret = None
+        return ret
+
+    def has_RRE(self, sequence, name, evalue_thresh=1):
+        random_tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+        working_dir = "/tmp/RRE_" + random_tag + "_" + name +  "/"
+        pathlib.Path(working_dir).mkdir(parents=True, exist_ok=True)
+        results = self.run_RREFinder(sequence, name, working_dir)
+        if results:
+            for line in results:
+                if float(line["E-value"]) < evalue_thresh:
+                    return True
+        return False
+
+    def annotate_w_RREFinder(self):
+        self.rre_present = False
+        for CDS in self.CDSs:
+            # try:
+                self.rre_present = self.has_RRE(CDS.sequence, CDS.accession_id) #Possible input for n and e_cutoff here
+                if self.rre_present:
+                    break
+            # except:
+                # logger.error("Unable to obtain results from RREFinder. Please check provided Pfam path")
 
     def set_intergenic_seqs(self, min_length, max_length):
         """Sets the sequences between called CDSs"""
@@ -198,7 +264,7 @@ class My_Record(object):
                                                    direction=0) #direction doesnt matter
             self.intergenic_seqs.append(intergenic_sequence)
         return
-        
+
     def set_intergenic_orfs(self, min_aa_seq_length, max_aa_seq_length, overlap):
         """Examines intergenic sequences to determine whether or not there are ORFs
         that code for valid aa sequences"""
@@ -238,98 +304,25 @@ class My_Record(object):
                     found_overlap = True
                     break
 
-
-
             if not found_overlap:
                 self.intergenic_orfs.append(Sub_Seq("ORF", 
                     str(orf_record.seq)[:-1], 
                     start,
                     stop,
                     strand))
-        # with open(f"{self.cluster_accession}_ig.txt") as orf_f:
-            # for line in orf_f:
-                # if line[0] != ">":
-                    # continue
-                # idx, start, end, strand = line.rstrip().split('_')
-                # if strand = '-':
-                    # start, end = self.window_start + int(end), self.window_start + int(start)
-        # print(prodigal_record)
-            
-        # for strand, sequence in [(1, self.cluster_sequence),
-                                         # (-1, self.cluster_sequence.reverse_complement())]:
-            # for intergenic_seq in self.intergenic_seqs:
-                # #Do start codons iteratively to ensure you don't skip any
-                # #In theory, should only be a 3x slowdown in runtime MAX.
-                # for start_codon in self.start_codons:
-                    # if strand == -1:
-                        # next_start = max(len(sequence) - intergenic_seq.end - overlap, 
-                                         # len(sequence)-self.window_end)
-                        # intergenic_seq_end = min(len(sequence) - intergenic_seq.start + overlap,
-                                                 # len(sequence) - self.window_start)
-                    # else:
-                        # next_start = max(intergenic_seq.start - overlap, self.window_start)
-                        # intergenic_seq_end = min(self.window_end, intergenic_seq.end + overlap)
-                    # start = 0
-                    # #Stay in the loop until we can't find a stop codon
-                    # while start < intergenic_seq_end:
-                        # start = sequence.find(start_codon, next_start)
-                        # if start == -1:
-                            # #Can't find any more of this codon
-                            # break
-                        # next_start = start + 1
-                        # end = start 
-                        # found_stop = False
-                        # while end < len(sequence) and end < intergenic_seq_end:
-                            # codon = sequence[end:end+3]
-                            # if str(codon) in self.stop_codons:
-                                # found_stop = True
-                                # break
-                            # else:
-                                # end = end + 3
-                        # #If we didn't find a stop codon, do what?
-                        # if not found_stop:
-                            # continue
-                        # if not (min_aa_seq_length < (end-start)/3 < max_aa_seq_length):
-                            # continue
-                        # nt_subsequence = sequence[start:end] #Add 3 if you want to inclue stop codon
-                        # aa_sequence = nt_subsequence.translate(11)
-                        # #Get nucleotide coords for original strand
-                        # if strand == -1:
-                            # old_end = end
-                            # end = len(sequence) - start
-                            # old_start = len(sequence) - old_end - 3
-                            # potential_orf = Sub_Seq('ORF',
-                                                         # aa_sequence,
-                                                         # end,
-                                                         # old_start,
-                                                         # -1)
-                        # else:
-                            # end = end + 3
-                            # potential_orf = Sub_Seq('ORF',
-                                                         # aa_sequence,
-                                                         # start,
-                                                         # end,
-                                                         # 1)
-                        # if potential_orf.start > potential_orf.end:
-                            # upstream_sequence = str(self.cluster_sequence[potential_orf.start+4:potential_orf.start+13].reverse_complement())
-                        # else:
-                            # upstream_sequence = str(self.cluster_sequence[potential_orf.start-13:potential_orf.start+4])
-                        # potential_orf.upstream_sequence = upstream_sequence
-                        # self.intergenic_orfs.append(potential_orf)
                         
-        # self.intergenic_orfs.sort(key=lambda seq: seq.start)
-        # #Get rid of duplicates. Duplicate ORFs will appear when the overlap is
-        # #set such that two intergenic sequences are expanded to a point where 
-        # #they share nucleotides with eachother
-        # i = 1
-        # while i < len(self.intergenic_orfs):
-            # #print(self.intergenic_orfs[i].sequence)
-            # if self.intergenic_orfs[i].start == self.intergenic_orfs[i-1].start:
-                # del self.intergenic_orfs[i]
-            # i += 1
-        
-       
+        self.intergenic_orfs.sort(key=lambda seq: seq.start)
+        #Get rid of duplicates. Duplicate ORFs will appear when the overlap is
+        #set such that two intergenic sequences are expanded to a point where 
+        #they share nucleotides with eachother
+        i = 1
+        while i < len(self.intergenic_orfs):
+            #print(self.intergenic_orfs[i].sequence)
+            if self.intergenic_orfs[i].start == self.intergenic_orfs[i-1].start:
+                del self.intergenic_orfs[i]
+            i += 1
         return
+     
     
     def set_ripps(self, module, master_conf):
         logger.debug("Setting %s ripps for %s" % (module.peptide_type, self.query_accession_id))

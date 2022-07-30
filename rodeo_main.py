@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #==============================================================================
 # Copyright (C) 2017 Bryce L. Kille
@@ -42,8 +42,10 @@ import sys
 import socket
 from shutil import copyfile
 try:
+    import urllib
     from urllib.request import Request, urlopen  # Python 3
 except ImportError:
+    import urllib2
     from urllib2 import Request, urlopen  # Python 2
 
 WEB_TOOL = False
@@ -392,11 +394,11 @@ def __main__():
         for peptide_type in peptide_types: 
             for record in records:
                 ripp_html_generator.write_record(ripp_htmls[peptide_type], master_conf, record, peptide_type)
-            try:
-                os.remove(output_dir + "/" + peptide_type + "/" + "temp_features.csv")
-                pass
-            except OSError:
-                logger.debug("Temp feature file appears to be missing...")
+            # try:
+                # os.remove(output_dir + "/" + peptide_type + "/" + "temp_features.csv")
+                # pass
+            # except OSError:
+                # logger.debug("Temp feature file appears to be missing...")
          
         
     except KeyboardInterrupt:

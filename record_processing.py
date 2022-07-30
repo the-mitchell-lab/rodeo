@@ -79,6 +79,7 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                 record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, 
                                         min_length=master_conf['general']['variables']['precursor_min'], 
                                         max_length=master_conf['general']['variables']['precursor_max'])
+                record.annotate_w_RREFinder()
                 record.set_intergenic_seqs(min_length=master_conf['general']['variables']['precursor_min'], 
                                            max_length=master_conf['general']['variables']['precursor_max'])
                 record.set_intergenic_orfs(min_aa_seq_length=master_conf['general']['variables']['precursor_min'], 
