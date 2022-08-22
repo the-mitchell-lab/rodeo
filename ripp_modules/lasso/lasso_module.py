@@ -124,8 +124,6 @@ class Ripp(VirtualRipp):
         self.core = self.sequence[self.split:]
         if not self.valid_split:
             self.set_split2()
-        else:
-            print("SPLIT BY FIMO")
 
 
 
