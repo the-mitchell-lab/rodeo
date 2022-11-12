@@ -43,7 +43,7 @@ import pathlib
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
 peptide_type = "lasso"
-CUTOFF = 15
+CUTOFF = 13
 index = 0
 
 
