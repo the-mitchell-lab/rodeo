@@ -61,6 +61,9 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
+# PFAMs that should never be added as potential ripps
+no_ripp_pfams = []
+
 class Sub_Seq(object):
         """Useful for storing subsequences and their coordinates"""
         def __init__(self, seq_type, seq, start, end, direction, accession_id=None):
@@ -75,6 +78,8 @@ class Sub_Seq(object):
             self.radar_score = -1
             self.upstream_sequence ="xxxxx"
             self.type = seq_type ##aa, nt etc.
+            self.isRRE = False
+            self.pfam_descr_list = []
 
 class My_Record(object):
     """ """
@@ -166,7 +171,8 @@ class My_Record(object):
                 logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
                 CDS.pfam_descr_list = []
             if min_length <= len(CDS.sequence) <= max_length: # len(CDS.pfam_descr_list) == 0 and 
-                self.intergenic_orfs.append(CDS)
+                if not any(any(fam in annot[0] for fam in no_ripp_pfams) for annot in CDS.pfam_descr_list) and not CDS.isRRE:
+                    self.intergenic_orfs.append(CDS)
             for annot in CDS.pfam_descr_list:
                 if any(fam in annot[0] for fam in ["PF14404", "PF14406", "PF14407", "PF14408", "PF14409", "PF12559" ,"TIGR04186"]):
                     self.intergenic_orfs.append(CDS)
@@ -228,10 +234,8 @@ class My_Record(object):
     def annotate_w_RREFinder(self):
         self.rre_present = False
         for CDS in self.CDSs:
-            # try:
-                self.rre_present = self.has_RRE(CDS.sequence, CDS.accession_id) #Possible input for n and e_cutoff here
-                if self.rre_present:
-                    break
+            CDS.isRRE = self.has_RRE(CDS.sequence, CDS.accession_id) #Possible input for n and e_cutoff here
+            self.rre_present = self.rre_present or CDS.isRRE
             # except:
                 # logger.error("Unable to obtain results from RREFinder. Please check provided Pfam path")
 
@@ -294,7 +298,7 @@ class My_Record(object):
                 cds_e = max(cds.start, cds.end)
                 orf_s = min(start, stop)
                 orf_e = max(start, stop)
-                if cds_s == orf_s and cds_e == orf_e:
+                if cds_s == orf_s or cds_e == orf_e:
                     found_overlap = True
                     break
                 elif cds_s < orf_s < cds_e and cds_e - orf_s > overlap:
@@ -323,6 +327,12 @@ class My_Record(object):
             i += 1
         return
      
+    def filter_RREs_and_HMMs(self, hmm_list):
+        ret_list = []
+        for cds in self.intergenic_orfs:
+            if not any(any(fam in annot[0] for fam in hmm_list) for annot in cds.pfam_descr_list) and not cds.isRRE:
+                ret_list.append(cds)
+        self.intergenic_orfs = ret_list
     
     def set_ripps(self, module, master_conf):
         logger.debug("Setting %s ripps for %s" % (module.peptide_type, self.query_accession_id))

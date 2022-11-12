@@ -43,7 +43,7 @@ import pathlib
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
 peptide_type = "lasso"
-CUTOFF = 15
+CUTOFF = 13
 index = 0
 
 
@@ -113,7 +113,8 @@ class Ripp(VirtualRipp):
                     scores[2] = (float(line[7]), int(line[4]))
             valid_split = True
         if valid_split and scores[2][0] == min(score for score, pos in scores) and 4 <= scores[2][1] <= len(self.sequence) - 4:
-            print("Split fused!")
+            pass
+            # print("Split fused!")
         scores = sorted(scores)
         self.valid_split = valid_split
         self.split = scores[0][1]
@@ -124,8 +125,8 @@ class Ripp(VirtualRipp):
         self.core = self.sequence[self.split:]
         if not self.valid_split:
             self.set_split2()
-        else:
-            print("SPLIT BY FIMO")
+        # else:
+            # print("SPLIT BY FIMO")
 
 
 
@@ -229,10 +230,12 @@ class Ripp(VirtualRipp):
     def set_score(self, pfam_dir, cust_hmm):
         scoring_csv_columns = []
 
-        if not (25 <= len(self.sequence) <= 75):
+        if not (25 <= len(self.sequence) <= 80):
             self.score -= 2
         if len(self.sequence) > 100:
             self.score -= 5
+        if len(self.sequence) > 150:
+            self.score -= 10
 
         if self.leader[-2] == "T":
             self.score += 4
@@ -247,18 +250,19 @@ class Ripp(VirtualRipp):
 
 
 
-        # TODO 1+ in core?
-        if self.core[-1] in "KRDE":
+        if self.core[0] in "KRDE":
             self.score -= 1
 
-        # TODO no score here
         if sum(map(self.core[:10].count, ['G','P'])) > sum(map(self.core[-10:].count, ["G","P"])):
             self.score += 0
 
-        # TODO
-        match = re.search('[YW]..P', self.leader)
-        if match is not None:
+        matches = list(re.finditer('[YW]..P', self.leader))
+        if matches:
             self.score += 2
+            for m in matches:
+                if len(self.leader) - m.start() in [-17, -16, -15]:
+                    self.score += 3
+                    break
 
 
         cPFam = "PF00733"
@@ -300,21 +304,22 @@ class Ripp(VirtualRipp):
                 if dist < 1000:
                     within_1000 = True
                     if dist < 500:
-                        self.score += 1
                         within_500 = True
                         if dist < 150:
                             within_150 = True
         if within_500:
+            self.score += 1
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
         if within_150:
+            self.score += 1
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
 
         if not within_1000:
-            self.score += -1
+            self.score += -2
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
@@ -327,35 +332,41 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
 
         if len(self.leader) > len(self.core):
-            self.score += 2
+            self.score += 1
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
 
         # Ring length
-        t1 = self.core.find("D", 6, 11)
-        t2 = self.core.find("E", 6, 11)
-        plausible_ring_length = t1
-        if plausible_ring_length != -1:
-            if t2 != -1:
-                plausible_ring_length = min(t1, t2)
-        else:
-            plausible_ring_length = t2
-        if 6 <= plausible_ring_length < 9:
-            self.score += 5
-        elif plausible_ring_length == 9:
+        ts = []
+        range_priorities = [range(8, 10), range(7, 8), range(10, 11), range(6, 7), range(11, 12)]
+        for r in range_priorities:
+            for c in "DE":
+                r = list(r)
+                t = self.core.find(c, r[0], r[-1] + 1)
+                if t != -1:
+                    break
+            if t != -1:
+                break
+
+
+        if t in [8, 9]:
+            self.score += 6
+        elif t == 7:
+            self.score += 4
+        elif t == 10:
             self.score += 2
-        elif plausible_ring_length == 10:
-            self.score += 1
-        elif plausible_ring_length == -1:
-            self.score -= 6
-        scoring_csv_columns.append(plausible_ring_length)
+        elif t in [6, 11]:
+            pass
+        else:
+            self.score += -6
+        scoring_csv_columns.append(t)
 
 
         #Check for GxxxxxT motif
         match = re.search('G.{5}T', self.leader)
         if match is not None:
-            self.score += 3
+            self.score += 2
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
@@ -366,6 +377,9 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
 
+        if "G" not in self.core[:12]:
+            self.score -= 4
+
         #check if peptide and lasso cyclase are on same strand +1
         # if cyclase_same_strand:
             # self.score += 1
@@ -374,10 +388,13 @@ class Ripp(VirtualRipp):
             # scoring_csv_columns.append(0)
 
         if 0.5 < len(self.leader)/float(len(self.core)) < 2:
-            self.score += 1
+            self.score += 2
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
+        
+        if self.core.count("C") % 2 == 1:
+            self.score -= 2
 
         if self.core[0] == 'C' and self.core.count('C') % 2 == 0:
             self.score += 0
@@ -391,14 +408,14 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
         #Check for aromatic residues
-        if any(aa in self.core for aa in ["H", "F", "Y", "W"]):
-            self.score += 1
+        if any(aa in self.core for aa in ["F", "Y", "W"]):
+            self.score += 2
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
 
-        if sum(aa in self.core for aa in ["H", "F", "Y", "W"]) >= 2:
-            self.score += 2
+        if sum(aa in self.core for aa in ["F", "Y", "W"]) >= 2:
+            self.score += 1
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
