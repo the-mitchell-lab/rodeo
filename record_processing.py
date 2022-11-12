@@ -76,10 +76,10 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                     record.trim_to_n_nucleotides(master_conf['general']['variables']['fetch_n'])
                 if "grasp" in args.peptide_types:
                     record.run_radar()
+                record.annotate_w_RREFinder()
                 record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, 
                                         min_length=master_conf['general']['variables']['precursor_min'], 
                                         max_length=master_conf['general']['variables']['precursor_max'])
-                record.annotate_w_RREFinder()
                 record.set_intergenic_seqs(min_length=master_conf['general']['variables']['precursor_min'], 
                                            max_length=master_conf['general']['variables']['precursor_max'])
                 record.set_intergenic_orfs(min_aa_seq_length=master_conf['general']['variables']['precursor_min'], 
@@ -87,6 +87,7 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                                            overlap=master_conf['general']['variables']['overlap']) 
                 for peptide_type in args.peptide_types:
                     module = ripp_modules[peptide_type]
+                    record.filter_RREs_and_HMMs(hmm_list=list(master_conf[peptide_type]["pfam_colors"].keys()))
                     record.set_ripps(module, master_conf)
                     record.score_ripps(module, master_conf['general']['variables']['pfam_dir'], args.custom_hmm)
                     record.color_ripps(module)

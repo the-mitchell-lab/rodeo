@@ -105,6 +105,8 @@ def write_legend(main_html, conf, peptide_type):
                         </div>""")
 
 def get_fill_color(cds, peptide_conf):
+    if "RRE" in peptide_conf["pfam_colors"].keys() and cds.isRRE:
+        return peptide_conf["pfam_colors"]["RRE"]
     for i in range(len(cds.pfam_descr_list)):
         if cds.pfam_descr_list[i][3].upper() in peptide_conf['pfam_colors'].keys():
             return peptide_conf['pfam_colors'][cds.pfam_descr_list[i][3].upper()]
@@ -246,7 +248,7 @@ def draw_cds_table(main_html, record):
             main_html.write("<td>-</td>")
         else:
             if cds.pfam_descr_list[0][0][:2] == "PF":
-                main_html.write("<td><a href='http://pfam.xfam.org/family/%s'>%s</a>" % (cds.pfam_descr_list[0][0], cds.pfam_descr_list[0][0]))
+                main_html.write("<td><a href='https://www.ebi.ac.uk/interpro/entry/pfam/%s'>%s</a>" % (cds.pfam_descr_list[0][0], cds.pfam_descr_list[0][0]))
             elif cds.pfam_descr_list[0][0][:4] == "TIGR":
                 main_html.write("<td><a href='https://www.ncbi.nlm.nih.gov/genome/annotation_prok/evidence/%s'>%s</a>" % (cds.pfam_descr_list[0][0], cds.pfam_descr_list[0][0]))
             else:
@@ -255,7 +257,7 @@ def draw_cds_table(main_html, record):
             n = 5
             for pfamid, _, _, _, in cds.pfam_descr_list[1:n]:
                 if pfamid[:2] == "PF":
-                    main_html.write("<br><a href='http://pfam.xfam.org/family/%s'>%s</a>" % (pfamid, pfamid))
+                    main_html.write("<br><a href='https://www.ebi.ac.uk/interpro/entry/pfam/%s'>%s</a>" % (pfamid, pfamid))
                 elif pfamid[:4] == "TIGR":
                     main_html.write("<br><a href='https://www.ncbi.nlm.nih.gov/genome/annotation_prok/evidence/%s'>%s</a>" % (pfamid, pfamid))
                 else:
@@ -348,7 +350,7 @@ def draw_orf_table(main_html, record, peptide_type, master_conf):
 
                 if peptide_type in ["lasso", "lanthi", "lanthi1", "lanthi2", "lanthi3", "lanthi4", "sacti", "thio", "grasp", "linar"]:
                     main_html.write('<td style="text-align:right">%s</td>' % (compress_sequence(ripp.leader,50)))
-                    main_html.write('<td style="text-align:right">%s</td>' % (compress_sequence(ripp.core, 50)))
+                    main_html.write('<td style="text-align:left">%s</td>' % (compress_sequence(ripp.core, 50)))
                 else:
                     main_html.write('<td style="text-align:right">%s</td>' % (compress_sequence(ripp.sequence)))
             main_html.write("<td>%d</td>" % (ripp.start))
