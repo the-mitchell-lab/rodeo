@@ -254,7 +254,7 @@ class VirtualRipp(object):
             row.append(svm_output)
             if int(svm_output) == 1:
                 row[-2] = int(row[-2]) + 10
-            if int(row[-2]) > cutoff: #CUTOFF
+            if int(row[-2]) >= cutoff: #CUTOFF
                 row[7] = 'Y'
             else:
                 row[7] = 'N'
