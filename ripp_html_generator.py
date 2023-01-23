@@ -329,7 +329,7 @@ def draw_orf_table(main_html, record, peptide_type, master_conf):
             prev_end = orf.end
             index += 1
             
-    elif peptide_type in ["lasso", "lanthi", "lanthi1", "lanthi2", "lanthi3", "lanthi4", "sacti", "thio", "grasp", "linar"]:
+    elif peptide_type in ["lasso", "lanthi", "lanthi1", "lanthi2", "lanthi3", "lanthi4", "sacti", "thio", "grasp", "linar", "boro"]:
         prev_end = 0
         rowcolor = 1
 
