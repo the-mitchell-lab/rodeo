@@ -11,7 +11,7 @@ Lastly, I have one important note. IF YOU WANT TO KILL RODEO/END THE PROCESS, US
 * Meme Suite >=4.12
 * Biopython >=1.69
 * HMMER >=3.1b2
-* [RREFinder](https://github.com/the-mitchell-lab/RREFinder)
+* [RREFinder](https://github.com/Alexamk/RREFinder)
 * [RADAR](https://github.com/AndreasHeger/radar)
 
 ## Installation
