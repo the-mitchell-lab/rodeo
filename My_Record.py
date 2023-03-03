@@ -307,7 +307,7 @@ class My_Record(object):
                 elif cds_s < orf_e < cds_e and orf_e - cds_s > overlap:
                     found_overlap = True
                     break
-
+                    
             if not found_overlap:
                 self.intergenic_orfs.append(Sub_Seq("ORF", 
                     str(orf_record.seq)[:-1], 

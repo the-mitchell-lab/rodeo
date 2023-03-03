@@ -223,6 +223,8 @@ def __main__():
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/linar/hmms/linar.hmm"))
     if "grasp" in args.peptide_types:
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/grasp/hmms/grasp.hmm"))
+    if "boro" in args.peptide_types:
+        args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/boro/hmms/boro.hmm"))
             
 #==============================================================================
 #   Set up queries/read query files   
@@ -280,6 +282,8 @@ def __main__():
             import ripp_modules.linar.linar_module as module
         elif peptide_type == "grasp":
             import ripp_modules.grasp.grasp_module as module
+        elif peptide_type == "boro":
+           import ripp_modules.boro.boro_module as module                                                                    
         else:
             logger.error("%s not in supported RiPP types" % (peptide_type))
             continue

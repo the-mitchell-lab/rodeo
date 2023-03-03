@@ -87,7 +87,10 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                                            overlap=master_conf['general']['variables']['overlap']) 
                 for peptide_type in args.peptide_types:
                     module = ripp_modules[peptide_type]
-                    record.filter_RREs_and_HMMs(hmm_list=list(master_conf[peptide_type]["pfam_colors"].keys()))
+                    if peptide_type not in ["grasp", "boro", "lanthi", "lanthi1", "lanthi2", "lanthi3", "lanthi4", "linar", "sacti", "thio"]:
+                        record.filter_RREs_and_HMMs(hmm_list=list(master_conf[peptide_type]["pfam_colors"].keys()))
+                    elif peptide_type == "boro" and master_conf[peptide_type]['variables']['skip_mt']:
+                        record.filter_RREs_and_HMMs(hmm_list=["PF00590", "NMT_1", "NMT_2", "BoroMT"])
                     record.set_ripps(module, master_conf)
                     record.score_ripps(module, master_conf['general']['variables']['pfam_dir'], args.custom_hmm)
                     record.color_ripps(module)
