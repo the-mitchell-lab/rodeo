@@ -221,6 +221,9 @@ class My_Record(object):
         return ret
 
     def has_RRE(self, sequence, name, evalue_thresh=1):
+        #inactivate RRE finder requirement on local install by uncommenting following line:
+        #return False
+        
         random_tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
         working_dir = "/tmp/RRE_" + random_tag + "_" + name +  "/"
         pathlib.Path(working_dir).mkdir(parents=True, exist_ok=True)
@@ -274,7 +277,8 @@ class My_Record(object):
         that code for valid aa sequences"""
         identifier = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
         SeqIO.write([SeqRecord(
-            Seq(self.cluster_sequence[self.window_start:self.window_end]),
+            #Seq(self.cluster_sequence[self.window_start:self.window_end]),
+            self.cluster_sequence[self.window_start:self.window_end],
             id=self.cluster_accession,
             name="prodigal")], f"/tmp/{self.cluster_accession}_{identifier}.fasta", "fasta")
         os.system(f"prodigal -q -i /tmp/{self.cluster_accession}_{identifier}.fasta -p meta -a /tmp/{self.cluster_accession}_{identifier}_ig.fasta -f sco -o /dev/null")
