@@ -45,7 +45,7 @@ from collections import defaultdict
 import pathlib
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 peptide_type = "boro"
-CUTOFF = 14 #TODO change cutoff to match svm
+CUTOFF = 14 
 index = 0
 
 
@@ -55,7 +55,7 @@ def write_csv_headers(output_dir):
     dir_prefix = output_dir + '/boro/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
-    svm_headers = 'Precursor Index, Classification, Precursor is a Methyltransferase, <1000 nt from mtase, <200 nt from mtase, <100 nt from mtase, >3000 nt from mtase, mtase (PF00590) present, mtase hits BoroMT hmm, mtase hits NMT_1(DCLFAD) hmm, mtase hits NMT_2(YGHP) hmm, LigA-like domain (PF07746) present, nearby domain hits a BBD hmm, precursor & mtase same direction, mtase & BBD both present, GGDEF present, acetyltransferase present, peptidase present, precursor has mtase domain (PF00590), precursor hits a borosin mtase hmm, precursor has a LigA-like domain (PF07746), precursor hits BBD_A hmm, precursor hits BBD_B hmm, precursor hits a legionellales hmm, precursor hits type VI/VIII hmm, precursor hits mtase & BBD hmm, precursor hits a legionellales & BBD hmm, precursor hits type VI/VIII & BBD hmm, precursor hits a legionellales & mtase hmm, precursor hits type VI/VII & mtase hmm, precursor is > 900 AA & hits a BBD hmm, precursor is > 700 AA & hits a BBD hmm, precursor is < 200 AA & hits a BBD hmm, precursor is < 400 AA & hits a BBD hmm, FIMO motif 1 present, motif 2, motif 3, motif 4, motif 5, motif 6, motif 7, motif 8, motif 9, motif 10, motif 11, motif 12, motif 13, motif 14, motif 15, motif 16, motif 17, motif 18, motif 19, motif 20, motif 21, motif 22, motif 23, motif 24, motif 25, motif 26, motif 27, Number of motifs present, Occurances of motif 1, motif 2, motif 3, motif 4, motif 5, motif 6, motif 7, motif 8, motif 9, motif 10, motif 11, motif 12, motif 13, motif 14, motif 15, motif 16, motif 17, motif 18, motif 19, motif 20, motif 21, motif 22, motif 23, motif 24, motif 25, motif 26, motif 27, No Motifs, mtase distance, precursor length, core charge, precursor charge, abs(core charge), abs(precursor charge), CORE COUNT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, aromatics, neg, pos, charged, aliphatic, hydroxyl, isoelectric point, PRECURSOR count A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, aromatics, neg, pos, charged, aliphatic, hydroxyl, isoelectric point'
+    svm_headers = 'Precursor Index, Classification, Precursor is a Methyltransferase, <1000 nt from MT, <200 nt from MT, <100 nt from MT, >3000 nt from MT, MT (PF00590) present, MT hits BoroMT hmm, MT hits NMT_1(DCLFAD) hmm, MT hits NMT_2(YGHP) hmm, LigA-like domain (PF07746) present, nearby domain hits a BBD hmm, precursor & MT same direction, MT & BBD both present, GGDEF present, acetyltransferase present, peptidase present, precursor has MT domain (PF00590), precursor hits a borosin MT hmm, precursor has a LigA-like domain (PF07746), precursor hits BBD_A hmm, precursor hits BBD_B hmm, precursor hits a legionellales hmm, precursor hits type VI/VIII hmm, precursor hits MT & BBD hmm, precursor hits a legionellales & BBD hmm, precursor hits type VI/VIII & BBD hmm, precursor hits a legionellales & MT hmm, precursor hits type VI/VII & MT hmm, precursor is > 900 AA & hits a BBD hmm, precursor is > 700 AA & hits a BBD hmm, precursor is < 200 AA & hits a BBD hmm, precursor is < 400 AA & hits a BBD hmm, FIMO motif 1 present, motif 2, motif 3, motif 4, motif 5, motif 6, motif 7, motif 8, motif 9, motif 10, motif 11, motif 12, motif 13, motif 14, motif 15, motif 16, motif 17, motif 18, motif 19, motif 20, motif 21, motif 22, motif 23, motif 24, motif 25, motif 26, motif 27, Number of motifs present, Occurances of motif 1, motif 2, motif 3, motif 4, motif 5, motif 6, motif 7, motif 8, motif 9, motif 10, motif 11, motif 12, motif 13, motif 14, motif 15, motif 16, motif 17, motif 18, motif 19, motif 20, motif 21, motif 22, motif 23, motif 24, motif 25, motif 26, motif 27, No Motifs, MT distance, precursor length, core charge, precursor charge, abs(core charge), abs(precursor charge), CORE COUNT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, aromatics, neg, pos, charged, aliphatic, hydroxyl, isoelectric point, PRECURSOR count A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, aromatics, neg, pos, charged, aliphatic, hydroxyl, isoelectric point'
     svm_headers = svm_headers.split(',')
     features_headers = ['Accession_id', 'Genus/Species', 'Sequence', 'Region1', 'Region2', 'Region3', 'Start', 'End', 'Total Score',"Valid Precursor",] + svm_headers
 #TODO close all these write headers at the end of the document
@@ -95,14 +95,14 @@ class Ripp(VirtualRipp):
             self.region2 = self.sequence
             self.region3 = "N/A"
         elif int(len(self.sequence)) <= 400:
-            self.split_index = int(len(self.sequence)-120) 
+            self.split_index = int(len(self.sequence)-120) #TODO 
         
             self.region1 = self.sequence[0:self.split_index]
             self.region2 = self.sequence[self.split_index:]
             self.region3 = "N/A"
         else:
             self.split_index1 = int((.5*len(self.sequence))-60)
-            self.split_index2 = int((.5*len(self.sequence))+60)  
+            self.split_index2 = int((.5*len(self.sequence))+60) #TODO 
             self.region1 = self.sequence[0:self.split_index1]
             self.region2 = self.sequence[self.split_index1:self.split_index2]
             self.region3 = self.sequence[self.split_index2:]
@@ -155,27 +155,27 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)  
 
             
-# adjusts score based on precursor distance from mtase
-        mtase = ["PF00590"] 
-        mtase_coords = []
+# adjusts score based on precursor distance from MT
+        MT = ["PF00590"] 
+        MT_coords = []
         for pfam in self.pfam_2_coords.keys():
-            if any(fam in pfam for fam in mtase):
-                mtase_coords += self.pfam_2_coords[pfam]
-        min_distance_mtase = self.get_min_dist(mtase_coords)
-        if min_distance_mtase is None:
-            min_distance_mtase = 66666 
+            if any(fam in pfam for fam in MT):
+                MT_coords += self.pfam_2_coords[pfam]
+        min_distance_MT = self.get_min_dist(MT_coords)
+        if min_distance_MT is None:
+            min_distance_MT = 66666 
         within_100 = False
         within_200 = False
         within_1000 = False
         within_3000 = False
 # 3 points if within 100 residues, 2 points if within 200, 1 point if within 1000, -4 points if NOT within 3000
-        if min_distance_mtase < 3000:
+        if min_distance_MT < 3000:
             within_3000 = True
-            if min_distance_mtase < 1000:
+            if min_distance_MT < 1000:
                 within_1000 = True
-                if min_distance_mtase < 200:
+                if min_distance_MT < 200:
                     within_200 = True
-                    if min_distance_mtase < 100:
+                    if min_distance_MT < 100:
                         within_100 = True
                         self.score += 3
                     else:
@@ -202,7 +202,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
 
-# if anything nearby has an mtase
+# if anything nearby has an MT
         mtPfam = False
         for pfam in self.pfam_2_coords.keys():
             if any(fam in pfam for fam in ["PF00590"]):
@@ -213,7 +213,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)   
 
-# if the nearby mtase matches one or more of the hmms (additive)
+# if the nearby MT matches one or more of the hmms (additive)
         mtHmm = False
         for pfam in self.pfam_2_coords.keys():
             if any(fam in pfam for fam in ["BoroMT"]):
@@ -258,7 +258,7 @@ class Ripp(VirtualRipp):
 # if the nearby BBD actually matches one or both of the hmms (not additive)        
         BBDhmm = False
         for pfam in self.pfam_2_coords.keys():
-            if any(fam in pfam for fam in ["BBD_A", "BBD_B"]):
+            if any(fam in pfam for fam in ["BBD_A", "BBD_B", "BBD_old"]):
                 BBDhmm = True
         if BBDhmm:
             self.score += 1
@@ -266,13 +266,13 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
        
-# if the precursor is encoded on the same strand as the mtase
+# if the precursor is encoded on the same strand as the MT
         if self.start < self.end:
             direction = 1
         else:
             direction = -1        
         same_dir = False
-        for tag in mtase:
+        for tag in MT:
             if tag in self.pfam_2_coords.keys():
                 for coord in self.pfam_2_coords[tag]:
                     if (coord[0] < coord[1] and direction == 1) or coord[0] > coord[1] and direction == -1:
@@ -344,7 +344,7 @@ class Ripp(VirtualRipp):
 
 # if the precursor has a LigA-like domain or hits a BBD hmm
         precursor_bbd_hit = False
-        targets = ["PF07746", "BBD_A", "BBD_B"]
+        targets = ["PF07746", "BBD_A", "BBD_B", "BBD_old"]
         for tar in targets:
             if tar in pfams:
                 precursor_bbd_hit = True
@@ -390,7 +390,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
 
-# if precursor hits mtase & BBD hmm
+# if precursor hits MT & BBD hmm
         if precursor_mt_hit and precursor_bbd_hit:
              scoring_csv_columns.append(1)
         else:
@@ -408,13 +408,13 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)                                 
 #                                   
-# if precursor hits legionellales & mtase hmm
+# if precursor hits legionellales & MT hmm
         if precursor_leg_hit and precursor_mt_hit:
              scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)                                 
                                  
-# if precursor hits type VI/VIII & mtase hmm
+# if precursor hits type VI/VIII & MT hmm
         if precursor_6_8_hit and precursor_mt_hit:
              scoring_csv_columns.append(1)
         else:
@@ -498,7 +498,7 @@ class Ripp(VirtualRipp):
 
 
 # SVM SCORING SECTION
-        scoring_csv_columns.append(min_distance_mtase)
+        scoring_csv_columns.append(min_distance_MT)
         scoring_csv_columns.append(len(self.sequence))
 
         charge_dict = {"E": -1, "D": -1, "K": 1, "H": 1, "R": 1}

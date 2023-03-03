@@ -221,8 +221,6 @@ class My_Record(object):
         return ret
 
     def has_RRE(self, sequence, name, evalue_thresh=1):
-        ##
-        return False
         random_tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
         working_dir = "/tmp/RRE_" + random_tag + "_" + name +  "/"
         pathlib.Path(working_dir).mkdir(parents=True, exist_ok=True)
@@ -276,7 +274,7 @@ class My_Record(object):
         that code for valid aa sequences"""
         identifier = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
         SeqIO.write([SeqRecord(
-            self.cluster_sequence[self.window_start:self.window_end],
+            Seq(self.cluster_sequence[self.window_start:self.window_end]),
             id=self.cluster_accession,
             name="prodigal")], f"/tmp/{self.cluster_accession}_{identifier}.fasta", "fasta")
         os.system(f"prodigal -q -i /tmp/{self.cluster_accession}_{identifier}.fasta -p meta -a /tmp/{self.cluster_accession}_{identifier}_ig.fasta -f sco -o /dev/null")
@@ -300,15 +298,16 @@ class My_Record(object):
                 cds_e = max(cds.start, cds.end)
                 orf_s = min(start, stop)
                 orf_e = max(start, stop)
-                #if cds_s == orf_s or cds_e == orf_e:
-                #    found_overlap = True
-                #    break
-                if cds_s < orf_s < cds_e and cds_e - orf_s > overlap:
+                if cds_s == orf_s or cds_e == orf_e:
+                    found_overlap = True
+                    break
+                elif cds_s < orf_s < cds_e and cds_e - orf_s > overlap:
                     found_overlap = True
                     break
                 elif cds_s < orf_e < cds_e and orf_e - cds_s > overlap:
                     found_overlap = True
                     break
+                    
             if not found_overlap:
                 self.intergenic_orfs.append(Sub_Seq("ORF", 
                     str(orf_record.seq)[:-1], 
