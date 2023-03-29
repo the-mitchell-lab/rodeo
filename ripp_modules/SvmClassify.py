@@ -110,6 +110,9 @@ class SVMRunner(object):
         elif peptide_type == 'linar':
             self.C_option = 1.17462
             self.gamma_option = 0.001
+        elif peptide_type == 'boro':
+            self.C_option = 6.898648307306076
+            self.gamma_option = 0.0001                            
         else:
             # default kernel values
             self.C_option = 2.8E10
