@@ -376,7 +376,7 @@ def __main__():
         # END MAIN LOOP
         main_html.write("</html>")
 
-        # Update score w SVM.
+        # Update score w SVM
         try:
             for peptide_type in peptide_types:
                 module = ripp_modules[peptide_type]

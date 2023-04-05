@@ -345,6 +345,8 @@ class Ripp(VirtualRipp):
         
         #MOTIFS
         all_fimo_motifs, all_fimo_score = [], {}
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_1/meme.txt".format("./ripp_modules/grasp"))
         fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_1/meme.txt".format(FILE_DIR))
         all_motifs = [
             'KNKNSKKKPFFASFLEKQVKDPETVKGG',
@@ -393,7 +395,8 @@ class Ripp(VirtualRipp):
         scoring_csv_columns.append(0)
         all_fimo_motifs.extend(fimo_motifs)
         all_fimo_score.update(fimo_scores)
-        
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_2/meme.txt".format("./ripp_modules/grasp"))
         fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_2/meme.txt".format(FILE_DIR))
         if motif_4 in fimo_motifs:
             self.score += fimo_motifs.count(motif_4)
@@ -402,7 +405,8 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
         all_fimo_motifs.extend(fimo_motifs)
         all_fimo_score.update(fimo_scores)
-        
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_3/meme.txt".format("./ripp_modules/grasp"))
         fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_3/meme.txt".format(FILE_DIR))
         if motif_5 in fimo_motifs:
             self.score += 1
@@ -416,7 +420,8 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
         all_fimo_motifs.extend(fimo_motifs)
         all_fimo_score.update(fimo_scores)
-            
+         # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_4/meme.txt".format("./ripp_modules/grasp"))   
         fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_4/meme.txt".format(FILE_DIR))
         if motif_7 in fimo_motifs:
             self.score += fimo_motifs.count(motif_7)
@@ -425,7 +430,8 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
         all_fimo_motifs.extend(fimo_motifs)
         all_fimo_score.update(fimo_scores)
-            
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_5/meme.txt".format("./ripp_modules/grasp"))   
         fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_5/meme.txt".format(FILE_DIR))
         if motif_8 in fimo_motifs:
             self.score += fimo_motifs.count(motif_8)
@@ -434,7 +440,8 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
         all_fimo_motifs.extend(fimo_motifs)
         all_fimo_score.update(fimo_scores)
-            
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_6/meme.txt".format("./ripp_modules/grasp"))   
         fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_6/meme.txt".format(FILE_DIR))
         if motif_9 in fimo_motifs:
             self.score += fimo_motifs.count(motif_9)

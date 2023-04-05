@@ -86,6 +86,8 @@ class Ripp(VirtualRipp):
         # If no motif is identified, then regular expressions are used to predict the cleavage site.
         # If still no cleavage site is identified, a default cleavage site halfway through the sequence is selected.
         score = [1, int(.50*len(self.sequence))]
+        # switch the # on the two lines below if your computer username has a space in it.     # RAL
+        #fimo_output = self.run_fimo_simple("{}/linar_cutsites.txt".format("./ripp_modules/linar"))
         fimo_output = self.run_fimo_simple("{}/linar_cutsites.txt".format(FILE_DIR))
         fimo_output = fimo_output.split('\n')
         valid_split = False
@@ -206,6 +208,8 @@ class Ripp(VirtualRipp):
             tabs.append(0)
 
         #Positive hit for LinA.hmm file at e-value < 0.001
+        # switch the # on the two lines below if your computer username has a space in it.     # RAL
+        #precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format("./ripp_modules/linar"), "", n=1)
         precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format(FILE_DIR), "", n=1)
         if precursor_pfam and len(self.sequence) < 120:
             score += 10

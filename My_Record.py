@@ -162,8 +162,20 @@ class My_Record(object):
         for CDS in self.CDSs:
             CDS.radar_score = get_radar_score(CDS.sequence)
             
+    def get_evalue(self, primary_hmm, cust_hmm):
+        self.pfam_2_evalue = []
+        for prots in self.CDSs:
+            try:
+                evalue_temp = hmmer_utils.get_hmmer_info(prots.sequence, primary_hmm, cust_hmm)
+            except:
+                logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
+                evalue_temp = []
+            for pfam_acc, desc, e_val, name in evalue_temp:
+                self.pfam_2_evalue.append((prots.accession_id, pfam_acc, e_val, prots.start, prots.end, int(abs(prots.start - prots.end)/3)))
+        
     def annotate_w_hmmer(self, primary_hmm, cust_hmm, min_length, max_length):
         self.pfam_2_coords = {}
+        
         for CDS in self.CDSs:
             try:
                 CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, primary_hmm, cust_hmm) #Possible input for n and e_cutoff here
@@ -180,6 +192,7 @@ class My_Record(object):
                 if annot[0] not in self.pfam_2_coords.keys(): #annot[0] is the PF* key
                     self.pfam_2_coords[annot[0]] = []
                 self.pfam_2_coords[annot[0]].append((CDS.start, CDS.end))
+           
                 
     def run_RREFinder(self, sequence, name, working_dir):
     #TODO change to temp file
@@ -343,7 +356,10 @@ class My_Record(object):
             if master_conf[module.peptide_type]['variables']['precursor_min'] <= len(orf.sequence) <=  master_conf[module.peptide_type]['variables']['precursor_max'] \
                     or ("M" in orf.sequence[-master_conf[module.peptide_type]['variables']['precursor_max']:]) \
                     or (module.peptide_type == "grasp" and orf.radar_score > 0 and len(orf.sequence) < 400):
-                ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords)
+                if module.peptide_type == "boro":
+                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.pfam_2_evalue) 
+                else:
+                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords)
                 if module.peptide_type == "grasp":
                     ripp.radar_score = orf.radar_score
                 ripp.radar_score  = orf.radar_score

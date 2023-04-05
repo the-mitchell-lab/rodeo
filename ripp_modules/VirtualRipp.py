@@ -92,7 +92,7 @@ def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_
     features_writer = csv.writer(features_csv_file)
     svm_writer = csv.writer(svm_csv_file)
     if peptide_type == "boro":
-        feature_count=7                                         
+        feature_count=11                                         
     for row in list_of_rows:
         features_writer.writerow([accession_id, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
         svm_writer.writerow([index, ''] + row[feature_count:]) #Don't include accession_id, leader, core sequence, start, end, or score
@@ -107,7 +107,7 @@ def run_svm(output_dir, peptide_type, cutoff, feature_count=5):
     header_row = next(features_reader) #skip header
     final_output_writer.writerow(header_row)
     if peptide_type == "boro":
-        feature_count=7                              
+        feature_count=11                              
     for row, svm_output_line in zip(features_reader, svm_output_reader):
         svm_output = svm_output_line[1]
         row[feature_count+4] = svm_output
@@ -214,6 +214,7 @@ class VirtualRipp(object):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+                 pfam_2_evalue=[],
                  has_rre=False):
         self.start = start
         self.end = end
@@ -225,12 +226,14 @@ class VirtualRipp(object):
         self.peptide_type = 'virtual' 
         self.score  = 0
         self.pfam_2_coords = pfam_2_coords
+        self.pfam_2_evalue = pfam_2_evalue
+        
         if start < end:
             self.direction = '+'
         else:
             self.direction = '-'
         self.valid_split = True #set to false if no valid split
-
+        
 #        self.set_leader_core()
 #        self.set_monoisotopic_mass()
 #        self.csv_columns = [self.leader, self.core, self.start, self.end]
@@ -267,6 +270,8 @@ class VirtualRipp(object):
     def run_fimo_simple(self, query_motif_file=None):
     #TODO change to temp file
         if not query_motif_file:
+            # switch the # on the two lines below if your computer username has a space in it. # RAL
+            #query_motif_file = os.path.join("./ripp_modules", self.peptide_type, self.peptide_type + "_fimo.txt")
             query_motif_file = os.path.join(FILE_DIR, self.peptide_type, self.peptide_type + "_fimo.txt")
         pid = str(os.getpid())
         try:
