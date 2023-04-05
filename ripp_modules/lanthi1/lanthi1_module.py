@@ -97,7 +97,8 @@ class Ripp(VirtualRipp):
     
     def set_split(self):
         """Try to identify cleavage site using regular expressions"""
-        
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #f_scores = self.get_fimo_score("{}_leader_fimo.txt".format("./ripp_modules/lanthi1/lanthi1"))
         f_scores = self.get_fimo_score("{}/{}_leader_fimo.txt".format(FILE_DIR, peptide_type))  
         l_stop = sorted([0] + f_scores[2])[-1]
         if len(f_scores[0]) > 0:

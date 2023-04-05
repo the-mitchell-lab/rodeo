@@ -83,6 +83,8 @@ class Ripp(VirtualRipp):
 
     def set_split(self):
         scores = [(1,int(.25*len(self.sequence)))]*3
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_output = self.run_fimo_simple("{}/wxxp_fimo.txt".format("./ripp_modules/lasso/"))
         fimo_output = self.run_fimo_simple("{}/wxxp_fimo.txt".format(FILE_DIR))
         fimo_output = fimo_output.split('\n')
         valid_split = False
@@ -94,6 +96,8 @@ class Ripp(VirtualRipp):
                 if float(line[7]) < scores[0][0]:
                     scores[0] = (float(line[7]), int(line[4]))
             valid_split = True
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_output = self.run_fimo_simple("{}/yxxp_fimo.txt".format("./ripp_modules/lasso/")).split('\n')
         fimo_output = self.run_fimo_simple("{}/yxxp_fimo.txt".format(FILE_DIR)).split('\n')
         if len(fimo_output) > 1:
             for line in fimo_output[1:]:
@@ -103,6 +107,8 @@ class Ripp(VirtualRipp):
                 if float(line[7]) < scores[1][0]:
                     scores[1] = (float(line[7]), int(line[4]) + (1 if line[1] in ("MEME-2", "MEME-4") else 0))
             valid_split = True
+        # switch the # on the two lines below if your computer username has a space in it. # RAL
+        #fimo_output = self.run_fimo_simple("{}/zoops20.txt".format("./ripp_modules/lasso/")).split('\n')
         fimo_output = self.run_fimo_simple("{}/zoops20.txt".format(FILE_DIR)).split('\n')
         if len(fimo_output) > 1:
             for line in fimo_output[1:]:
