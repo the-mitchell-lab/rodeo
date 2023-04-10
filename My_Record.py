@@ -363,11 +363,10 @@ class My_Record(object):
 
                 if module.peptide_type == "sacti":
                     ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.rre_present)
-                else:
-                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords)
-
-                if module.peptide_type == "boro":
+                
+                elif module.peptide_type == "boro":
                     ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.pfam_2_evalue) 
+                
                 else:
                     ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords)
 
