@@ -225,7 +225,8 @@ def __main__():
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/grasp/hmms/grasp.hmm"))
     if "boro" in args.peptide_types:
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/boro/hmms/boro.hmm"))
-            
+    if "thio" in args.peptide_types:
+        args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/thio/hmms/thio.hmm"))
 #==============================================================================
 #   Set up queries/read query files   
 #==============================================================================
