@@ -62,7 +62,7 @@ def write_csv_headers(output_dir):
     dir_prefix = output_dir + '/boro/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
-    svm_headers = "Precursor Index,Classification,Precursor has a methyltransferase domain,Precursor has a BBD domain,Precursor's Length,Best Boro MT length,Precursor is best Boro MT,Best BBD length,Precursor is best BBD,MT & BBD fused,MT & GGDEF fused,Nearby PF00590 domain,Nearby BoroMT hmm hit,Nearby NMT_1 (DCLFAD) hmm hit,Nearby NMT_2 (YGHP) hmm hit,Nearby PF03819 (MazG) or PF12643 (MazG-like) domain,Best BoroMT score [-log(e-value)],BoroMT score >= 40,BoroMT score >= 30,BoroMT score <= 25,BoroMT score <=15,Best BoroMT hit's PF00590 (TP methyltransferase) score [-log(e-value)],BoroMT hit's PF00590 score >= 35,BoroMT hit's PF00590 score >= 25,Best BoroMT hit's PF03819 (MazG) score [-log(e-value)],BoroMT hit's PF03819 (MazG) score >= 35,BoroMT hit's PF03819 (MazG) score >= 25,BoroMT hit's PF03819 (MazG) score >= 15,BoroMT hit's PF03819 (MazG) score >= 5,Nearby PF07746 (LigA),Nearby BBD hmm hit,PF07746 (LigA) score [-log(e-value)],BBD_A score [-log(e-value)],BBD_B score [-log(e-value)],BBD_old score [-log(e-value)],Precursor within 100 nucleotides of a MT,Precursor within 200 nucleotides of a MT,Precursor within 1000 nucleotides of a MT,Precursor is farther than 3000 nucleotides from a MT,Precursor & MT on same strand,Both BBD and PF00590 domains nearby,Nearby GGDEF,Nearby acetyltransferase,Nearby peptidase,Nearby legionellales hmm hit,Nearby type VI/VII/VIII hmm hit,precursor has a PF00590 (TP methyltransferase) domain,precursors hits the BoroMT hmm,precursor hits the NMT_1 hmm,precursor hits the NMT_2 hmm,precursor has a LigA-like domain (PF07746),precursor hits BBD_A hmm,precursor hits BBD_B hmm,precursor hits BBD_old hmm,precursor hits a legionellales hmm,precursor hits type VI/VII/VIII hmm,precursor hits MT & BBD hmm,precursor hits MT hmm and nearby type 6-8 hmm hit,precursor hits a legionellales & BBD hmm,precursor hits type VI/VII/VIII & BBD hmm,precursor hits a legionellales & MT hmm,precursor hits type VI/VII/VIII & MT hmm,precursor is > 900 AA & hits a BBD hmm,precursor is > 700 AA & hits a BBD hmm,precursor is < 400 AA & hits a BBD hmm,precursor is < 250 AA & hits a BBD hmm,precursor is < 100 AA and hits a BBD hmm,precursor is < 400 AA and hits the type VI/VII/VIII hmm,precursor is < 100 AA and hits a legionellales hmm,FIMO motif 1 present,motif 2,motif 3,motif 4,motif 5,motif 6,motif 7,motif 8,motif 9,motif 10,motif 11,motif 12,motif 13,motif 14,motif 15,motif 16,motif 17,motif 18,motif 19,motif 20,motif 21,motif 22,motif 23,motif 24,motif 25,motif 26,motif 27,Number of motifs present,Occurances of motif 1,motif 2,motif 3,motif 4,motif 5,motif 6,motif 7,motif 8,motif 9,motif 10,motif 11,motif 12,motif 13,motif 14,motif 15,motif 16,motif 17,motif 18,motif 19,motif 20,motif 21,motif 22,motif 23,motif 24,motif 25,motif 26,motif 27,No Motifs,MT distance,core charge,precursor charge,abs(core charge),abs(precursor charge),CORE COUNT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,aromatics,neg,pos,charged,aliphatic,hydroxyl,isoelectric point,PRECURSOR count A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,aromatics,neg,pos,charged,aliphatic,hydroxyl,isoelectric point"
+    svm_headers = "Precursor Index,Classification,Precursor has a methyltransferase domain,Precursor has a BBD domain,Precursor's Length,Best Boro MT length,Precursor is best Boro MT,Best BBD length,Precursor is best BBD,MT & BBD fused,MT & GGDEF fused,Nearby PF00590 domain,Nearby BorosinMT hmm hit,Nearby NMT_1 (DCLFAD) hmm hit,Nearby NMT_2 (YGHP) hmm hit,Nearby PF03819 (MazG) or PF12643 (MazG-like) domain,Best BorosinMT score [-log(e-value)],BorosinMT score >= 40,BorosinMT score >= 30,BorosinMT score <= 25,BorosinMT score <=15,Best BorosinMT hit's PF00590 (TP methyltransferase) score [-log(e-value)],BorosinMT hit's PF00590 score >= 35,BorosinMT hit's PF00590 score >= 25,Best BorosinMT hit's PF03819 (MazG) score [-log(e-value)],BorosinMT hit's PF03819 (MazG) score >= 35,BorosinMT hit's PF03819 (MazG) score >= 25,BorosinMT hit's PF03819 (MazG) score >= 15,BorosinMT hit's PF03819 (MazG) score >= 5,Nearby PF07746 (LigA),Nearby BBD hmm hit,PF07746 (LigA) score [-log(e-value)],BBD_A score [-log(e-value)],BBD_B score [-log(e-value)],BBD_C score [-log(e-value)],BBD_old score [-log(e-value)],Precursor within 100 nucleotides of a MT,Precursor within 200 nucleotides of a MT,Precursor within 1000 nucleotides of a MT,Precursor is farther than 3000 nucleotides from a MT,Precursor & MT on same strand,Both BBD and PF00590 domains nearby,Nearby GGDEF,Nearby acetyltransferase,Nearby peptidase,Nearby legionellales hmm hit,Nearby type VI/VII/VIII hmm hit,precursor has a PF00590 (TP methyltransferase) domain,precursors hits the BorosinMT hmm,precursor hits the NMT_1 hmm,precursor hits the NMT_2 hmm,precursor has a LigA-like domain (PF07746),precursor hits BBD_A hmm,precursor hits BBD_B hmm,precursor hits BBD_C hmm,precursor hits BBD_old hmm,precursor hits a legionellales hmm,precursor hits type VI/VII/VIII hmm,precursor hits MT & BBD hmm,precursor hits MT hmm and nearby type 6-8 hmm hit,precursor hits a legionellales & BBD hmm,precursor hits type VI/VII/VIII & BBD hmm,precursor hits a legionellales & MT hmm,precursor hits type VI/VII/VIII & MT hmm,precursor is > 900 AA & hits a BBD hmm,precursor is > 700 AA & hits a BBD hmm,precursor is < 400 AA & hits a BBD hmm,precursor is < 250 AA & hits a BBD hmm,precursor is < 100 AA and hits a BBD hmm,precursor is < 400 AA and hits the type VI/VII/VIII hmm,precursor is < 100 AA and hits a legionellales hmm,FIMO motif 1 present,motif 2,motif 3,motif 4,motif 5,motif 6,motif 7,motif 8,motif 9,motif 10,motif 11,motif 12,motif 13,motif 14,motif 15,motif 16,motif 17,motif 18,motif 19,motif 20,motif 21,motif 22,motif 23,motif 24,motif 25,motif 26,motif 27,Number of motifs present,Occurances of motif 1,motif 2,motif 3,motif 4,motif 5,motif 6,motif 7,motif 8,motif 9,motif 10,motif 11,motif 12,motif 13,motif 14,motif 15,motif 16,motif 17,motif 18,motif 19,motif 20,motif 21,motif 22,motif 23,motif 24,motif 25,motif 26,motif 27,No Motifs,MT distance,core charge,precursor charge,abs(core charge),abs(precursor charge),CORE COUNT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,aromatics,neg,pos,charged,aliphatic,hydroxyl,isoelectric point,PRECURSOR count A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,aromatics,neg,pos,charged,aliphatic,hydroxyl,isoelectric point"
     svm_headers = svm_headers.split(',')
     features_headers = ['Accession_id', 'Genus/Species', 'Sequence', 'Region1', 'Region2', 'Region3', 'Start', 'End', 'Best Borosin MT accession', 'Best BBD accession', 'Multiple Borosin MT', 'Multiple BBDs', 'Total Score',"Valid Precursor",] + svm_headers
 #TODO close all these write headers at the end of the document
@@ -126,13 +126,13 @@ class Ripp(VirtualRipp):
         best_boro_mt1 = 0
         best_boroMT_evalue1 = 1
         for mts in self.pfam_2_evalue:
-            if mts[1] == "BoroMT" and mts[2] < best_boroMT_evalue1:
+            if mts[1] == "BorosinMT" and mts[2] < best_boroMT_evalue1:
                 best_boro_mt1 = mts[0]
                 best_boroMT_evalue1 = mts[2]
         self.best_boro_mt = best_boro_mt1
         
 # Best scoring BBD
-        bbd_list = ["PF07746", "BBD_A", "BBD_B", "BBD_old"]
+        bbd_list = ["PF07746", "BBD_A", "BBD_B", "BBD_C", "BBD_old"]
         best_boro_bbd1 = 0
         best_boro_bbd_evalue1 = 1
         for bbds in self.pfam_2_evalue:
@@ -147,7 +147,7 @@ class Ripp(VirtualRipp):
         p_mul_mt = 0
         i = 0
         for mts in self.pfam_2_evalue:
-            if mts[1] == "BoroMT" and mts[0] not in multi_boro_mt_list:
+            if mts[1] == "BorosinMT" and mts[0] not in multi_boro_mt_list:
                 multi_boro_mt_list.append(mts[0])
                 i += 1
         if i >= 2:
@@ -158,7 +158,7 @@ class Ripp(VirtualRipp):
         
 # Multiple BBDs in BGC
         multi_boro_bbd = False
-        bbd_list = ["BBD_A", "BBD_B", "BBD_old", "PF07746"]
+        bbd_list = ["BBD_A", "BBD_B", "BBD_C", "BBD_old", "PF07746"]
         multi_boro_bbd_list = []
         p_mul_bbd = 0
         i = 0
@@ -212,7 +212,7 @@ class Ripp(VirtualRipp):
             
 # Precursor is a methyltransferase
         prec_mt_hit = False
-        mt_list = ["BoroMT", "NMT_1", "NMT_2", "PF00590"]
+        mt_list = ["BorosinMT", "NMT_1", "NMT_2", "PF00590"]
         for tar in mt_list:
             if tar in prec_pfams:
                 prec_mt_hit = True
@@ -223,7 +223,7 @@ class Ripp(VirtualRipp):
         
 # Precursor has a BBD domain
         prec_bbd_hit = False
-        bbd_list = ["BBD_A", "BBD_B", "BBD_old", "PF07746"]
+        bbd_list = ["BBD_A", "BBD_B", "BBD_C", "BBD_old", "PF07746"]
         for tar in bbd_list:
             if tar in prec_pfams:
                 prec_bbd_hit = True
@@ -245,7 +245,7 @@ class Ripp(VirtualRipp):
         best_boro_mt_end = 0
         
         for mts in self.pfam_2_evalue:
-            if mts[1] == "BoroMT" and mts[2] < best_boroMT_evalue:
+            if mts[1] == "BorosinMT" and mts[2] < best_boroMT_evalue:
                 best_boro_mt = mts[0]
                 best_boroMT_evalue = mts[2]
                 best_boro_mt_start = mts[3]
@@ -270,7 +270,7 @@ class Ripp(VirtualRipp):
 
 # Best scoring BBD 
         borobbd_hmm = False
-        bbd_list = ["PF07746", "BBD_A", "BBD_B", "BBD_old"]
+        bbd_list = ["PF07746", "BBD_A", "BBD_B", "BBD_C", "BBD_old"]
         best_boro_bbd = ""
         best_boro_bbd_evalue = 1
         best_boro_bbd_len = 0
@@ -302,8 +302,8 @@ class Ripp(VirtualRipp):
 
 # MT & BBD fused in BGC
         fused_mt_bbd = False
-        mt_list = ["BoroMT", "NMT_1", "NMT_2", "PF00590"]
-        bbd_list = ["BBD_A", "BBD_B", "BBD_old", "PF07746"]
+        mt_list = ["BorosinMT", "NMT_1", "NMT_2", "PF00590"]
+        bbd_list = ["BBD_A", "BBD_B", "BBD_C", "BBD_old", "PF07746"]
         mt_temp = []
         bbd_temp = []
         for prots in self.pfam_2_evalue:
@@ -321,7 +321,7 @@ class Ripp(VirtualRipp):
             
 # MT & GGDEF fused in BGC
         fused_mt_ggdef = False
-        mt_list = ["BoroMT", "NMT_1", "NMT_2"]
+        mt_list = ["BorosinMT", "NMT_1", "NMT_2"]
         ggdef_list = ["PF00990", "PF17853"]
         mt_temp = []
         ggdef_temp = []
@@ -349,10 +349,10 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)   
 
-# if anything nearby hits the BoroMT hmm
+# if anything nearby hits the BorosinMT hmm
         mtHmm = False
         for pfam in self.pfam_2_coords.keys():
-            if any(fam in pfam for fam in ["BoroMT"]):
+            if any(fam in pfam for fam in ["BorosinMT"]):
                 mtHmm = True
         if mtHmm:
             self.score += 1 # score
@@ -391,11 +391,11 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)   
             
-# Methyltransferase BoroMT hmm -log(evalue)
+# Methyltransferase BorosinMT hmm -log(evalue)
         boro_mt_score = -(math.log10(best_boroMT_evalue))
         scoring_csv_columns.append(boro_mt_score)
         
-# Methyltransferase hits BoroMT hmm with a -log(evalue) >= 40
+# Methyltransferase hits BorosinMT hmm with a -log(evalue) >= 40
         boro_mt_40 = False
         if boro_mt_score >= 40:
             scoring_csv_columns.append(1)
@@ -404,7 +404,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
         
-# Methyltransferase hits BoroMT hmm with a -log(evalue) >= 30
+# Methyltransferase hits BorosinMT hmm with a -log(evalue) >= 30
         boro_mt_30 = False
         if boro_mt_score >= 30:
             scoring_csv_columns.append(1)
@@ -413,7 +413,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
         
-# Methyltransferase hits BoroMT hmm with a -log(evalue) =< 25
+# Methyltransferase hits BorosinMT hmm with a -log(evalue) =< 25
         boro_mt_25 = False
         if boro_mt_score <= 25:
             scoring_csv_columns.append(1)
@@ -422,7 +422,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
             
-# Methyltransferase hits BoroMT hmm with a -log(evalue) =< 15
+# Methyltransferase hits BorosinMT hmm with a -log(evalue) =< 15
         boro_mt_15 = False
         if boro_mt_score <= 15:
             scoring_csv_columns.append(1)
@@ -431,7 +431,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
         
-#Best BoroMT other mt pfam hits evalues
+#Best BorosinMT other mt pfam hits evalues
         tp_evalue = False
         mazg_evalue = False
         best_boro_tp_evalue = 1
@@ -449,24 +449,24 @@ class Ripp(VirtualRipp):
                     best_boro_mazg_evalue = mts[2]
                     mazg_evalue = True
                     
-#Best BoroMT hit's PF00590 -log(evalue)
+#Best BorosinMT hit's PF00590 -log(evalue)
         record_pf00590 = False
-        # if the BoroMT hmm is hit and that protein has a PF00590 domain
+        # if the BorosinMT hmm is hit and that protein has a PF00590 domain
         if boromt_hmm == True and tp_evalue == True:
             neglog_tp = -(math.log10(best_boro_tp_evalue))
             scoring_csv_columns.append(neglog_tp)
             record_pf00590 = True
-        # if the BoroMT hmm is hit and that protein doesn't have a PF00590 domain
+        # if the BorosinMT hmm is hit and that protein doesn't have a PF00590 domain
         elif boromt_hmm == True and tp_evalue == False:
             neglog_tp = 0
             scoring_csv_columns.append(0)
             record_pf00590 = True
-        # if the BoroMT hmm isn't hit
+        # if the BorosinMT hmm isn't hit
         else:
             neglog_tp = -1
             scoring_csv_columns.append(-1)
 
-#Best BoroMT hit's PF00590 -log(evalue) >= 35
+#Best BorosinMT hit's PF00590 -log(evalue) >= 35
         if record_pf00590:
             if neglog_tp >= 35:
                 self.score -= 3 # score
@@ -477,7 +477,7 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(-1)
         
 
-#Best BoroMT hit's PF00590 -log(evalue) >= 25
+#Best BorosinMT hit's PF00590 -log(evalue) >= 25
         if record_pf00590:
             if neglog_tp >= 25:
                 self.score -= 2 # score
@@ -487,25 +487,25 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(-1)
             
-#Best BoroMT hit's PF03819 -log(evalue)
+#Best BorosinMT hit's PF03819 -log(evalue)
         record_pf03819 = False
-        # if the BoroMT hmm is hit and that protein has a PF03819 domain
+        # if the BorosinMT hmm is hit and that protein has a PF03819 domain
         if boromt_hmm == True and mazg_evalue == True:
             neglog_mazg = -(math.log10(best_boro_mazg_evalue))
             scoring_csv_columns.append(neglog_mazg)
             record_pf03819 = True
-        # if the BoroMT hmm is hit and that protein doesn't have a PF00590 domain
+        # if the BorosinMT hmm is hit and that protein doesn't have a PF00590 domain
         elif boromt_hmm == True and mazg_evalue == False:
             neglog_mazg = 0
             scoring_csv_columns.append(0)
             record_pf03819 = True
-        # if the BoroMT hmm isn't hit
+        # if the BorosinMT hmm isn't hit
         else:
             neglog_tp = -1
             scoring_csv_columns.append(-1)
         
 
-#Best BoroMT hit's PF03819 -log(evalue) >= 35
+#Best BorosinMT hit's PF03819 -log(evalue) >= 35
         if record_pf03819:
             if neglog_mazg >= 35:
                 self.score -= 5 # score
@@ -515,7 +515,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(-1)
 
-#Best BoroMT hit's PF03819 -log(evalue) >= 25
+#Best BorosinMT hit's PF03819 -log(evalue) >= 25
         if record_pf03819:
             if neglog_mazg >= 25:
                 self.score -= 3 # score
@@ -525,7 +525,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(-1)
 
-#Best BoroMT hit's PF03819 -log(evalue) >= 15
+#Best BorosinMT hit's PF03819 -log(evalue) >= 15
         if record_pf03819:
             if neglog_mazg >= 15:
                 self.score -= 1 # score
@@ -535,7 +535,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(-1)
 
-#Best BoroMT hit's PF03819 -log(evalue) >= 5
+#Best BorosinMT hit's PF03819 -log(evalue) >= 5
         if record_pf03819:
             if neglog_mazg >= 5:
                 scoring_csv_columns.append(1)
@@ -558,7 +558,7 @@ class Ripp(VirtualRipp):
 # if the nearby BBD actually matches one or both of the hmms (not additive)        
         BBDhmm = False
         for pfam in self.pfam_2_coords.keys():
-            if any(fam in pfam for fam in ["BBD_A", "BBD_B", "BBD_old"]):
+            if any(fam in pfam for fam in ["BBD_A", "BBD_B", "BBD_C", "BBD_old"]):
                 BBDhmm = True
         if BBDhmm:
             scoring_csv_columns.append(1)
@@ -572,14 +572,17 @@ class Ripp(VirtualRipp):
         ligA_evalue = False
         bbdA_evalue = False
         bbdB_evalue = False
+        bbdC_evalue = False
         bbdOld_evalue = False
         best_LigA_evalue = 1
         best_bbdA_evalue = 1
         best_bbdB_evalue = 1
+        best_bbdC_evalue = 1
         best_bbdOld_evalue = 1
         neglog_LigA_evalue = 1
         neglog_bbdA_evalue = 1
         neglog_bbdB_evalue = 1
+        neglog_bbdC_evalue = 1
         neglog_bbdOld_evalue = 1
         
         if borobbd_hmm == True:
@@ -595,6 +598,10 @@ class Ripp(VirtualRipp):
                     best_bbdB_evalue = bbds[2]
                     neglog_bbdB_evalue = -(math.log10(best_bbdB_evalue))
                     bbdB_evalue = True
+                if bbds[0] == best_boro_bbd and bbds[1] == "BBD_C":
+                    best_bbdC_evalue = bbds[2]
+                    neglog_bbdC_evalue = -(math.log10(best_bbdC_evalue))
+                    bbdC_evalue = True
                 if bbds[0] == best_boro_bbd and bbds[1] == "BBD_old":
                     best_bbdOld_evalue = bbds[2]
                     neglog_bbdOld_evalue = -(math.log10(best_bbdOld_evalue))
@@ -657,6 +664,25 @@ class Ripp(VirtualRipp):
             neglog_bbdB_evalue = -1
             scoring_csv_columns.append(-1)
         
+# BBD_C hmm -log(evalue)
+        # if a LigA domain or BBD hmm is present and that protein hits the BBD_C hmm
+        record_bbdC = False
+        if borobbd_hmm == True and bbdC_evalue == True:
+            neglog_bbdC_evalue = -(math.log10(best_bbdC_evalue))
+            scoring_csv_columns.append(neglog_bbdC_evalue)
+            record_bbdC = True
+            
+        #if a LigA domain or BBD hmm is present and that protein doesn't hit the BBD_C hmm
+        elif borobbd_hmm == True and bbdC_evalue == False:
+            neglog_bbdC_evalue = 0
+            scoring_csv_columns.append(0)
+            record_bbdC = True
+            
+        # if the BBD_C hmm isn't hit
+        else:
+            neglog_bbdC_evalue = -1
+            scoring_csv_columns.append(-1)
+            
 # BBD_old hmm -log(evalue)
         # if a LigA domain or BBD hmm is present and that protein hits the BBD_old hmm
         record_bbdOld = False
@@ -677,7 +703,7 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(-1)
 
 # # adjusts score based on precursor distance from MT
-        MT = ["PF00590", "BoroMT", "NMT_1", "NMT_2" ] 
+        MT = ["PF00590", "BorosinMT", "NMT_1", "NMT_2" ] 
         MT_coords = []
         for pfam in self.pfam_2_coords.keys():
             if any(fam in pfam for fam in MT):
@@ -799,8 +825,8 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
 
-# if the precursor hits the BoroMT hmm
-        if "BoroMT" in prec_pfams:
+# if the precursor hits the BorosinMT hmm
+        if "BorosinMT" in prec_pfams:
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
@@ -831,6 +857,12 @@ class Ripp(VirtualRipp):
 
 # if the precursor hits the second BBD hmm
         if "BBD_B" in prec_pfams:
+            scoring_csv_columns.append(1)
+        else:
+            scoring_csv_columns.append(0)
+            
+# if the precursor hits the third BBD hmm
+        if "BBD_C" in prec_pfams:
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
