@@ -67,7 +67,7 @@ def write_csv_headers(output_dir):
     features_headers = ['Accession_id', 'Genus/Species', 'Sequence', 'Region1', 'Region2', 'Region3', 'Start', 'End', 'Best Borosin MT accession', 'Best BBD accession', 'Multiple Borosin MT', 'Multiple BBDs', 'Total Score',"Valid Precursor",] + svm_headers
 #TODO close all these write headers at the end of the document
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
-    svm_csv_file = open("{}/svm/fitting_set.csv".format(FILE_DIR), 'w')
+    svm_csv_file = open(os.path.join(FILE_DIR, "svm/fitting_set.csv"), 'w')
     features_writer = csv.writer(features_csv_file)
     svm_writer = csv.writer(svm_csv_file)
     features_writer.writerow(features_headers)
