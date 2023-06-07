@@ -88,26 +88,26 @@ def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_
     dir_prefix = output_dir + '/{}/'.format(peptide_type)
     global index
     features_csv_file = open(dir_prefix + "temp_features.csv", 'a')
-    svm_csv_file = open(os.path.join(FILE_DIR, "{}/svm/fitting_set.csv".format(peptide_type)), 'a')
+    svm_csv_file = open(os.path.join(dir_prefix + "fitting_set.csv".format(peptide_type)), 'a')
     features_writer = csv.writer(features_csv_file)
     svm_writer = csv.writer(svm_csv_file)
     if peptide_type == "boro":
-        feature_count=11                                         
+        feature_count=11
     for row in list_of_rows:
         features_writer.writerow([accession_id, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
         svm_writer.writerow([index, ''] + row[feature_count:]) #Don't include accession_id, leader, core sequence, start, end, or score
         index += 1
         
 def run_svm(output_dir, peptide_type, cutoff, feature_count=5):
-    runner = svmc.SVMRunner(peptide_type)
+    runner = svmc.SVMRunner(peptide_type, output_dir)
     runner.run_svm()
-    svm_output_reader = csv.reader(open(os.path.join(FILE_DIR, "{}/svm/fitting_results.csv".format(peptide_type))))
+    svm_output_reader = csv.reader(open(os.path.join(output_dir, "{}/fitting_results.csv".format(peptide_type))))
     final_output_writer = csv.writer(open(output_dir + "/{}/{}_features.csv".format(peptide_type, peptide_type), 'w'))
     features_reader = csv.reader(open(output_dir + "/{}/temp_features.csv".format(peptide_type)))
     header_row = next(features_reader) #skip header
     final_output_writer.writerow(header_row)
     if peptide_type == "boro":
-        feature_count=11                              
+        feature_count=11
     for row, svm_output_line in zip(features_reader, svm_output_reader):
         svm_output = svm_output_line[1]
         row[feature_count+4] = svm_output
@@ -247,7 +247,7 @@ class VirtualRipp(object):
             logger.error("{} not a valid peptide type".format(self.peptide_type))
             
         svm.run_svm()
-        svm_output_reader = csv.reader(open(os.path.join(FILE_DIR, self.peptide_type, "svm/fitting_results.csv")))
+        svm_output_reader = csv.reader(open(os.path.join(output_dir, self.peptide_type, "/fitting_results.csv")))
         final_output_writer = csv.writer(open(output_dir + "/" + self.peptide_type + '/'\
                                               + self.peptide_type + "_features.csv", 'w'))
         features_reader = csv.reader(open(output_dir + "/" + self.peptide_type + '/'\

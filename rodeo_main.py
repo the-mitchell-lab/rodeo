@@ -249,6 +249,7 @@ def __main__():
 #   Initializations and output file header writing        
 #==============================================================================
     peptide_types = args.peptide_types
+    global output_dir
     output_dir = args.output_dir
     module = nulltype_module
     

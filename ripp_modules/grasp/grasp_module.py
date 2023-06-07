@@ -56,9 +56,9 @@ def write_csv_headers(output_dir):
         os.makedirs(dir_prefix)
     svm_headers = 'Precursor Index,classification, Radar Score, <1100 from ATP-grasp ligase, <300 from ATP-grasp ligase, >2000 from ATP-grasp ligase, 2nd half contains >8% Asp residue (acceptor site), 2n half of precursor contains >7% Thr residues (donor site), Full length precursor contains >7% Lys residues (donor site), Second half of precursor contains >7% Pro residues, Precursor contains >0 Cys residues, Second half of precursor contains <3 acceptor residues (Asp + Glu), Second half of precursor contains <3 donor residues (Ser + Thr + Lys), Second half of precursor contains more donor residues than acceptor residues, % acceptor residues in second half of precursor > % acceptor residues in first half of precursor,  % acceptor residues (Asp + Glu) in second half of precursor >13%, % donor residues (Ser + Thr + Lys) in second half of precursor >18%, Precursor ends with Leu, Precursor ends with Asp Val or Ser, First half of the precursor contains a “PFxL” motif, Precursor and the ATP-grasp protein (MdnC homolog) are encoded on same strand, Gene cluster contains one of the following: PF0005 PF06472 PF00664 PF03412 TIGR03796 TIGR01846 TIGR03797 TIGR00954 TIGR02203 TIGR02204 TIGR03375 (ABC transporters that co-occur frequently), Gene cluster contains one of the following: PF13302 PF00583 PF13523 (acetyltransferases that co-occur frequently), A local gene product hits TIGR04188 (methyltransferase), Precursor hits PF12559 (serine endopeptidase inhibitor) or TIGR04186 (GRASP_targ), Precursor hits PF14404 (strep_pep) PF14406 (bacteroid_pep) PF14407 (frankia_pep) PF14408 (actino_pep) or PF14409 (herpeto_pep), Acceptor compressionC index > Donor compressionC index*, Calculated charge at pH7 of second half of precursor < charge of first half of precursor, Precursor peptide contains sequence motif #1 “PFFAxxL”, Count of sequence motif #2 “TxKxPSDx(E/D)(E/D)”, Precursor peptide contains sequence motif #3 “LFIx(D/E)L”, Count of sequence motif #4 “xTxxxxEx” in precursor, Precursor contains of sequence motif #5 “KPYxxxYxE” in precursor, Count of sequence motif “TxxTxxxExxDxD” in precursor, Count of sequence motif “TxxTxTxExxDxxE” in precursor, Count of sequence motif “TKTxxxxExDD” in precursor,Count of sequence motif “TxTxTxxxxExxDxD” in precursor, Minimum distance from MdnB C D TgnB and PsnB homologs  (nt), Precursor length, Estimated first half charge, Estimated second half charge, Estimated precursor charge,Absolute value of second half charge,Absolute value of first half charge,Absolute value of precursor charge,FIRST HALF A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,SECOND HALF A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,PRECURSOR A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, LAST RESIDUE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl, acceptor compression index, donor compression index, total motifs hit,meme1,meme2,meme3,meme4,meme5,meme6,meme7,meme8,meme9,meme10,meme11,meme12,meme13,meme14,meme15,meme16,meme17,meme18,meme19,meme20,meme21,meme22, sum of meme scores, no motifs present '
     svm_headers = svm_headers.split(',')
-    features_headers = ['Accession_id', 'Genus/Species', 'First half', 'Second Half', 'Start', 'End', "Total Score", "Valid Precursor"] + svm_headers 
+    features_headers = ['Accession_id', 'Genus/Species', 'First half', 'Second Half','Start', 'End', "Total Score", "Valid Precursor"] + svm_headers 
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
-    svm_csv_file = open("{}/svm/fitting_set.csv".format(FILE_DIR), 'w')
+    svm_csv_file = open("{}fitting_set.csv".format(dir_prefix), 'w')
     features_writer = csv.writer(features_csv_file)
     svm_writer = csv.writer(svm_csv_file)
     features_writer.writerow(features_headers)
@@ -83,13 +83,14 @@ class Ripp(VirtualRipp):
         self.csv_columns = [self.leader, self.core, self.start, self.end]
         self.CUTOFF = CUTOFF
         
+        
     def set_split(self):
         #TODO add regexes
         self.split_index = int(.5*len(self.sequence))
         
         self.leader = self.sequence[0:self.split_index]
         self.core = self.sequence[self.split_index:]
-                
+
     def get_fimo_score(self, fimo_file):
         fimo_output = self.run_fimo_simple(fimo_file)
         fimo_motifs = []
