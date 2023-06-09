@@ -13,6 +13,7 @@ Lastly, I have one important note. IF YOU WANT TO KILL RODEO/END THE PROCESS, US
 * HMMER >=3.1b2
 * [RREFinder](https://github.com/Alexamk/RREFinder)
 * [RADAR](https://github.com/AndreasHeger/radar)
+* [fasta2](https://fasta.bioch.virginia.edu/wrpearson/fasta/fasta2/)
 
 ## Installation
 
