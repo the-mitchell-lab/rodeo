@@ -77,9 +77,9 @@ def __main__():
     parser.add_argument('-out', '--output_dir', type=str,
                         help='Name of output folder')
     parser.add_argument('-c', '--conf_file', nargs='*', default=[], 
-                        help='Maximum size of potential ORF') 
+                        help='Specify a custom configuration file') 
     parser.add_argument('-hmm', '--custom_hmm', nargs='*', default=[], 
-                        help='Maximum size of potential ORF') 
+                        help='Specify additional HMMs for scoring. Wildcards are accepted') 
     parser.add_argument('-j', '--num_cores', type=int, default = 1,
                         help="Number of cores to use.")
 #    parser.add_argument('-v', '--verbose', action='store_true', default=True,
