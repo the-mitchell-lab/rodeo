@@ -39,6 +39,8 @@ import logging
 from rodeo_main import VERBOSITY
 import time
 from timeout_decorator import timeout, TimeoutError
+import urllib.request
+import xml.etree.ElementTree as ET
 
 logger = logging.getLogger(__name__)
 logger.setLevel(VERBOSITY)
@@ -75,12 +77,15 @@ def get_gb_handles(prot_accession_id):
             if int(total_count) >= 1:
                 IdList = record["IdList"]
                 time.sleep(0.5)
-                link_records = Entrez.read(Entrez.elink(dbfrom="protein",db="nuccore",id=IdList))
+                link_records = Entrez.elink(dbfrom="protein",db="nuccore",id=IdList).read()
+                xml = ET.fromstring(link_records)
+                tree = ET.ElementTree(xml)
+                root = tree.getroot()
                 nuccore_ids=[]
-                if len(link_records[0]['LinkSetDb']) == 0:
-                    return -2
-                for record in link_records[0]['LinkSetDb'][0]['Link']:
-                    nuccore_ids.append(record['Id']) 
+                if root.find('./LinkSet/LinkSetDb/Link/Id') is None:
+                     return -2
+                for record in root.findall('./LinkSet/LinkSetDb/Link/Id'):
+                     nuccore_ids.append(record.text)
                     
                 search_handle     = Entrez.epost(db="nuccore", id=",".join(nuccore_ids))
                 search_results    = Entrez.read(search_handle)
