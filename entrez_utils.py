@@ -39,7 +39,6 @@ import logging
 from rodeo_main import VERBOSITY
 import time
 from timeout_decorator import timeout, TimeoutError
-import urllib.request
 import xml.etree.ElementTree as ET
 
 logger = logging.getLogger(__name__)
