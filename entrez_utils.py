@@ -56,10 +56,10 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-Entrez.email ='kille2@illinois.edu' 
+Entrez.email ='ghudson@lbl.gov'
 
 @timeout(300)
-def get_gb_handles(prot_accession_id):
+def get_gb_handles(prot_accession_id, master_conf):
     """Returns a list of .gb/.gbk filestreams from protein db accession.
     
     ERROR CODES:
@@ -94,6 +94,8 @@ def get_gb_handles(prot_accession_id):
                 
                 handles = []
                 for start in range(len(nuccore_ids)):
+                    if start == 1 and not master_conf['general']['variables']['evaluate_all']:
+                              break
                     time.sleep(0.5)
                     orig_handle = Entrez.efetch(db="nuccore", dbfrom="protein", rettype="gbwithparts", 
                                                    retmode="text", retstart=start, retmax=batchSize, 

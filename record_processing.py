@@ -126,7 +126,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
         for query in queries:
             logger.debug("Fetching %s data" % query)
             if '.gbk' != query[-4:] and '.gb' != query[-3:]: #accession_id
-                gb_handles = get_gb_handles(query)
+                gb_handles = get_gb_handles(query, master_conf)
                 nuccore_accession = query
                 if type(gb_handles) is int:
                     if gb_handles == -1:
