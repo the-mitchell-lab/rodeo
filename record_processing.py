@@ -76,7 +76,7 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                     record.trim_to_n_nucleotides(master_conf['general']['variables']['fetch_n'])
                 if "grasp" in args.peptide_types:
                     record.run_radar()
-                if "boro" in args.peptide_types:
+                if "boro" or "grasp" in args.peptide_types:
                     record.get_evalue(master_conf['general']['variables']['pfam_dir'], args.custom_hmm)
                 record.annotate_w_RREFinder()
                 record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, 

@@ -359,17 +359,16 @@ class My_Record(object):
                 orf.radar_score = get_radar_score(orf.sequence)
             if master_conf[module.peptide_type]['variables']['precursor_min'] <= len(orf.sequence) <=  master_conf[module.peptide_type]['variables']['precursor_max'] \
                     or ("M" in orf.sequence[-master_conf[module.peptide_type]['variables']['precursor_max']:]) \
+                    or (module.peptide_type == "grasp" and len(orf.sequence) < 400)\
                     or (module.peptide_type == "grasp" and orf.radar_score > 0 and len(orf.sequence) < 400):
-
                 if module.peptide_type == "sacti":
                     ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.rre_present)
                 
-                elif module.peptide_type == "boro":
+                elif module.peptide_type == "boro" or "grasp":
                     ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.pfam_2_evalue) 
                 
                 else:
                     ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords)
-
                 if module.peptide_type == "grasp":
                     ripp.radar_score = orf.radar_score
                 ripp.radar_score  = orf.radar_score

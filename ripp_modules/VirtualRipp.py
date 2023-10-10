@@ -93,6 +93,8 @@ def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_
     svm_writer = csv.writer(svm_csv_file)
     if peptide_type == "boro":
         feature_count=11
+    if peptide_type == "grasp":
+        feature_count =9
     for row in list_of_rows:
         features_writer.writerow([accession_id, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
         svm_writer.writerow([index, ''] + row[feature_count:]) #Don't include accession_id, leader, core sequence, start, end, or score
@@ -108,6 +110,8 @@ def run_svm(output_dir, peptide_type, cutoff, feature_count=5):
     final_output_writer.writerow(header_row)
     if peptide_type == "boro":
         feature_count=11
+    if peptide_type == "grasp":
+        feature_count =9
     for row, svm_output_line in zip(features_reader, svm_output_reader):
         svm_output = svm_output_line[1]
         row[feature_count+4] = svm_output
@@ -140,8 +144,7 @@ def get_repeat_score(repeats):
         if count_same == len(repeats):
             score += 1
     return score
-            
-    
+               
 def parse_radar_output(radar_output):
     score = 0
     i = 0

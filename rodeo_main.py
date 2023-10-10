@@ -77,9 +77,9 @@ def __main__():
     parser.add_argument('-out', '--output_dir', type=str,
                         help='Name of output folder')
     parser.add_argument('-c', '--conf_file', nargs='*', default=[], 
-                        help='Specify a custom configuration file') 
+                        help='Maximum size of potential ORF') 
     parser.add_argument('-hmm', '--custom_hmm', nargs='*', default=[], 
-                        help='Specify additional HMMs for scoring. Wildcards are accepted') 
+                        help='Maximum size of potential ORF') 
     parser.add_argument('-j', '--num_cores', type=int, default = 1,
                         help="Number of cores to use.")
 #    parser.add_argument('-v', '--verbose', action='store_true', default=True,
@@ -367,7 +367,8 @@ def __main__():
                 module = ripp_modules[peptide_type]
                 for ripp in record.ripps[peptide_type]:
                     if master_conf[peptide_type]['variables']['precursor_min'] <= len(ripp.sequence) <= master_conf[peptide_type]['variables']['precursor_max'] \
-                        or ("M" in ripp.sequence[-master_conf[peptide_type]['variables']['precursor_max']:]) \
+                        or ("M" in ripp.sequence[-master_conf[peptide_type]['variables']['precursor_max']:])\
+                        or (module.peptide_type == "grasp" and len(ripp.sequence) < 400)\
                         or (module.peptide_type == "grasp" and ripp.radar_score > 0 and len(ripp.sequence) < 400):
                             
                         list_of_rows.append(ripp.csv_columns)

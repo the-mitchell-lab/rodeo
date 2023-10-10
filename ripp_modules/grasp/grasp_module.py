@@ -54,9 +54,9 @@ def write_csv_headers(output_dir):
     dir_prefix = output_dir + '/grasp/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
-    svm_headers = 'Precursor Index,classification, Radar Score, <1100 from ATP-grasp ligase, <300 from ATP-grasp ligase, >2000 from ATP-grasp ligase, 2nd half contains >8% Asp residue (acceptor site), 2n half of precursor contains >7% Thr residues (donor site), Full length precursor contains >7% Lys residues (donor site), Second half of precursor contains >7% Pro residues, Precursor contains >0 Cys residues, Second half of precursor contains <3 acceptor residues (Asp + Glu), Second half of precursor contains <3 donor residues (Ser + Thr + Lys), Second half of precursor contains more donor residues than acceptor residues, % acceptor residues in second half of precursor > % acceptor residues in first half of precursor,  % acceptor residues (Asp + Glu) in second half of precursor >13%, % donor residues (Ser + Thr + Lys) in second half of precursor >18%, Precursor ends with Leu, Precursor ends with Asp Val or Ser, First half of the precursor contains a “PFxL” motif, Precursor and the ATP-grasp protein (MdnC homolog) are encoded on same strand, Gene cluster contains one of the following: PF0005 PF06472 PF00664 PF03412 TIGR03796 TIGR01846 TIGR03797 TIGR00954 TIGR02203 TIGR02204 TIGR03375 (ABC transporters that co-occur frequently), Gene cluster contains one of the following: PF13302 PF00583 PF13523 (acetyltransferases that co-occur frequently), A local gene product hits TIGR04188 (methyltransferase), Precursor hits PF12559 (serine endopeptidase inhibitor) or TIGR04186 (GRASP_targ), Precursor hits PF14404 (strep_pep) PF14406 (bacteroid_pep) PF14407 (frankia_pep) PF14408 (actino_pep) or PF14409 (herpeto_pep), Acceptor compressionC index > Donor compressionC index*, Calculated charge at pH7 of second half of precursor < charge of first half of precursor, Precursor peptide contains sequence motif #1 “PFFAxxL”, Count of sequence motif #2 “TxKxPSDx(E/D)(E/D)”, Precursor peptide contains sequence motif #3 “LFIx(D/E)L”, Count of sequence motif #4 “xTxxxxEx” in precursor, Precursor contains of sequence motif #5 “KPYxxxYxE” in precursor, Count of sequence motif “TxxTxxxExxDxD” in precursor, Count of sequence motif “TxxTxTxExxDxxE” in precursor, Count of sequence motif “TKTxxxxExDD” in precursor,Count of sequence motif “TxTxTxxxxExxDxD” in precursor, Minimum distance from MdnB C D TgnB and PsnB homologs  (nt), Precursor length, Estimated first half charge, Estimated second half charge, Estimated precursor charge,Absolute value of second half charge,Absolute value of first half charge,Absolute value of precursor charge,FIRST HALF A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,SECOND HALF A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,PRECURSOR A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, LAST RESIDUE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl, acceptor compression index, donor compression index, total motifs hit,meme1,meme2,meme3,meme4,meme5,meme6,meme7,meme8,meme9,meme10,meme11,meme12,meme13,meme14,meme15,meme16,meme17,meme18,meme19,meme20,meme21,meme22, sum of meme scores, no motifs present '
+    svm_headers = 'Precursor Index,classification, Radar Score, <1100 from ATP-grasp ligase, <300 from ATP-grasp ligase, >2000 from ATP-grasp ligase, 2nd half contains >8% Asp residue (acceptor site), 2n half of precursor contains >8% Thr residues (donor site), Second half of precursor contains >7% Pro residues, Second half of precursor contains <3 acceptor residues (Asp + Glu), Second half of precursor contains <3 donor residues (Ser + Thr + Lys), Second half of precursor contains more donor residues than acceptor residues, % acceptor residues in second half of precursor > % acceptor residues in first half of precursor,  % acceptor residues (Asp + Glu) in second half of precursor >13%, % donor residues (Ser + Thr + Lys) in second half of precursor >18%, Precursor ends with Asp, First half of the precursor contains a “PFxL” motif, Precursor and the ATP-grasp protein (MdnC homolog) are encoded on same strand, Gene cluster contains one of the following: PF0005 PF06472 PF00664 PF03412 TIGR03796 TIGR01846 TIGR03797 TIGR00954 TIGR02203 TIGR02204 TIGR03375 (ABC transporters that co-occur frequently), Gene cluster contains one of the following: PF13302 PF00583 PF13523 (acetyltransferases that co-occur frequently), A local gene product hits one of the following: TIGR04188 TIGR04364 PF01135 TIGR00080 (methyltransferase), Precursor hits PF12559 (serine endopeptidase inhibitor) or TIGR04186 (GRASP_targ), Precursor hits PF14404 (strep_pep) PF14406 (bacteroid_pep) PF14407 (frankia_pep) PF14408 (actino_pep) or PF14409 (herpeto_pep), Acceptor compressionC index > Donor compressionC index*, Calculated charge at pH7 of second half of precursor < charge of first half of precursor, Acceptor regex match, Donor regex match, Both acceptor & donor regex match, Precursor peptide contains sequence motif #1 “Group1 leader”, motif #2 "Group1 core",motif #3 "Group2 leader",motif #4 "Group2 core",motif #5 "Group3 leader",motif #6 "Group3 core",motif #7 "Group4 core",motif #8 "Group5 core",motif #9 "Group6 core",motif #10 "Group7 core",motif #11 "Group11 core",motif #12 "Group13 core",motif #13 "Group16 core",motif #14 "Group21 core",Count of sequence motif #1 “Group1 leader”, motif #2 "Group1 core",motif #3 "Group2 leader",motif #4 "Group2 core",motif #5 "Group3 leader",motif #6 "Group3 core",motif #7 "Group4 core",motif #8 "Group5 core",motif #9 "Group6 core",motif #10 "Group7 core",motif #11 "Group11 core",motif #12 "Group13 core",motif #13 "Group16 core",motif #14 "Group21 core",Total motifs in sequence, No motifs,Minimum distance from MdnB C D TgnB and PsnB homologs  (nt), Precursor length, Estimated first half charge, Estimated second half charge, Estimated precursor charge,Absolute value of second half charge,Absolute value of first half charge,Absolute value of precursor charge,FIRST HALF A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,SECOND HALF A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,PRECURSOR A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl, acceptor compression index, donor compression index'
     svm_headers = svm_headers.split(',')
-    features_headers = ['Accession_id', 'Genus/Species', 'First half', 'Second Half','Start', 'End', "Total Score", "Valid Precursor"] + svm_headers 
+    features_headers = ['Accession_id', 'Genus/Species', 'Precursor peptide','First half', 'Second Half','Start', 'End', 'Best graspetide synthetase', 'Best graspetide synthetase evalue', 'Multiple graspetide synthetases', "Total Score", "Valid Precursor"] + svm_headers 
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
     svm_csv_file = open("{}fitting_set.csv".format(dir_prefix), 'w')
     features_writer = csv.writer(features_csv_file)
@@ -71,28 +71,57 @@ class Ripp(VirtualRipp):
                  end, 
                  sequence,
                  upstream_sequence,
-                 pfam_2_coords):
+                 pfam_2_coords,
+                 pfam_2_evalue):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
-                                     pfam_2_coords)
+                                     pfam_2_coords,
+                                     pfam_2_evalue)
         self.peptide_type = 'grasp'
         self.set_split()
         self.set_monoisotopic_mass()
-        self.csv_columns = [self.leader, self.core, self.start, self.end]
+        self.best_grasp_acc()
+        self.csv_columns = [self.sequence, self.leader, self.core, self.start, self.end, self.best_grasp_syn, self.best_grasp_syn_evalue, self.gra_syn_list]
         self.CUTOFF = CUTOFF
-        
+
+        #pfam_2_evalue has a format of: [protein accession, HMM/PFAM hit, e value, start, end, AA length]
         
     def set_split(self):
-        #TODO add regexes
         self.split_index = int(.5*len(self.sequence))
         
         self.leader = self.sequence[0:self.split_index]
         self.core = self.sequence[self.split_index:]
-
-    def get_fimo_score(self, fimo_file):
-        fimo_output = self.run_fimo_simple(fimo_file)
+    
+    def best_grasp_acc(self):
+# Best scoring graspetide synthetase
+        best_grasp_syn = 0
+        best_grasp_syn_evalue = 1
+        for gra in self.pfam_2_evalue:
+            if gra[1] == "Graspetide_synthetase" and gra[2] < best_grasp_syn_evalue:
+                best_grasp_syn = gra[0]
+                best_grasp_syn_evalue = gra[2]
+        self.best_grasp_syn = best_grasp_syn
+        self.best_grasp_syn_evalue = best_grasp_syn_evalue
+        
+# Multiple graspetide synthetases in BGC
+        multi_gra_syn = []
+        gra_syn_list = ""
+        i = 0
+        for gra in self.pfam_2_evalue:
+            if gra[1] == "Graspetide_synthetase" and gra[0] not in multi_gra_syn:
+                multi_gra_syn.append(gra[0])
+                i += 1
+        if i >= 2:
+            gra_syn_list = str(multi_gra_syn)
+            gra_syn_list = gra_syn_list.replace(",", " ")
+        self.gra_syn_list = gra_syn_list 
+        
+        
+        
+    def get_fimo_score(self): 
+        fimo_output = self.run_fimo_simple()
         fimo_motifs = []
         fimo_motifs = [line.partition("\t")[0] for line in fimo_output.split("\n")[1:] if "\t" in line]
         fimo_scores = defaultdict(int) # = {int(line.split("\t")[0]): float(line.split("\t")[6]) for line in fimo_output.split("\n") if "\t" in line and line.partition("\t")[0].isdigit()}
@@ -100,12 +129,9 @@ class Ripp(VirtualRipp):
             if not ("\t" in line and "motif_id" not in line):
                 continue
             fimo_scores[line.split("\t")[0]] = float(line.split("\t")[6])
-        #Calculate score
-        motif_score = 0
         return fimo_motifs, fimo_scores
     
     def set_monoisotopic_mass(self):
-#        print(self.core)
         if "B" in self.core:
             print(self.core)
             print("AA sequence contains Asx. Currently reviewing how to assign weights to such translations.")
@@ -124,10 +150,11 @@ class Ripp(VirtualRipp):
             
         
     def set_score(self, pfam_dir, cust_hmm):
+        scoring_csv_columns = []
         scoring_csv_columns = [self.radar_score]
         self.score = 0
 #        mdn_bcd = ["TIGR04185", "TIGR04184", "PF00583", "PF13673", "PF13302", "PF13523", "TIGR04187", "TgnB", "PsnB", "MvdD", "MvdC"]
-        atp_grasp = ["TIGR04184", "TIGR04185", "TIGR04187"]
+        atp_grasp = ["Graspetide_synthetase", "TIGR04187", "TIGR04192"]
         atp_grasp_coords = []
         for pfam in self.pfam_2_coords.keys():
             if any(fam in pfam for fam in atp_grasp):
@@ -172,30 +199,16 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(0)
             
         per_thr = self.core.count("T")/float(len(self.core))
-        if per_thr > 0.07:
+        if per_thr > 0.08:
             scoring_csv_columns.append(1)
             self.score += 1
         else:
             scoring_csv_columns.append(0)
-            
-        per_lys = self.sequence.count("K")/float(len(self.sequence))
-        if per_lys > 0.07:
-            scoring_csv_columns.append(1)
-            self.score += 1
-        else:
-            scoring_csv_columns.append(0)
-            
-        #
+        
         per_pro = self.core.count("P")/float(len(self.core))
         if per_pro > 0.07:
             scoring_csv_columns.append(1)
             self.score += 1
-        else:
-            scoring_csv_columns.append(0)
-            
-        if self.sequence.count("C") > 0:
-            scoring_csv_columns.append(1)
-            self.score += -2
         else:
             scoring_csv_columns.append(0)
             
@@ -206,7 +219,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
 
-        donor_core_count = self.core.count('S') + self.core.count('T') + self.core.count('L')
+        donor_core_count = self.core.count('S') + self.core.count('T') + self.core.count('K') 
         if donor_core_count < 3:
             self.score += -1
             scoring_csv_columns.append(1)
@@ -237,14 +250,8 @@ class Ripp(VirtualRipp):
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
-            
-        if self.sequence[-1] in "L":
-            self.score += 2
-            scoring_csv_columns.append(1)
-        else:
-            scoring_csv_columns.append(0)
         
-        if self.sequence[-1] in "DVS":
+        if self.sequence[-1] in "D":
             self.score += 1
             scoring_csv_columns.append(1)
         else:
@@ -268,6 +275,7 @@ class Ripp(VirtualRipp):
                     if (coord[0] < coord[1] and direction == 1) or coord[0] > coord[1] and direction == -1:
                         same_dir = True
         if same_dir:
+            self.score += 2
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
@@ -298,13 +306,14 @@ class Ripp(VirtualRipp):
             
         methyl_t = False    
         for pfam in self.pfam_2_coords.keys():
-            if "TIGR04188" in pfam:
+            if any(fam in pfam for fam in ["TIGR04188", "TIGR04364", "PF01135", "TIGR00080"]):
                 methyl_t = True
         if methyl_t:
             self.score += 1
             scoring_csv_columns.append(1)
         else:
             scoring_csv_columns.append(0)
+            
         precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_dir, cust_hmm)
         pfams = []
         for pfam_dot, _, _, _, in precursor_hmm_info:
@@ -321,11 +330,12 @@ class Ripp(VirtualRipp):
         for tar in targets:
             if tar in pfams:
                 precursor_hit = True
-        if precursor_hit in pfams:
+        if precursor_hit:
             scoring_csv_columns.append(1)
             self.score += 5
         else:
             scoring_csv_columns.append(0) 
+            
         donor_c_index = self.compression_index(['S', 'T', 'K'])
         acceptor_c_index = self.compression_index(['D','G'])
         if acceptor_c_index > donor_c_index:
@@ -344,114 +354,66 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0) 
         
-        #MOTIFS
-        all_fimo_motifs, all_fimo_score = [], {}
-        # switch the # on the two lines below if your computer username has a space in it. # RAL
-        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_1/meme.txt".format("./ripp_modules/grasp"))
-        fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_1/meme.txt".format(FILE_DIR))
-        all_motifs = [
-            'KNKNSKKKPFFASFLEKQVKDPETVKGG',
-             'VTMKYPSDGDE',
-             'DITIPERDVITKPIIDTVTSP',
-             'KAVPFFARFLEEQKEEESSEE',
-             'VTTLAIGEEGG',
-             'MKNHPLTQNQPANAKPVTLAESQLFEVSGGLRARLSESVPV',
-             'MHPFSLEKAQLENVVGGVQEV',
-             'LPDILS',
-             'STTITETIENSDEDE',
-             'MKPYIMNYSETIEJS',
-             'SLAPSNCERKYEISNEKQSAM',
-             'NLVYDHITQLSYJDKEKTVKAINFGPR',
-             'YGZTLITKTREGIDRSERS',
-             'NQKSPLLKYRIECDCNETAELPNKSYDFVSGLWVDESGEP',
-             'MKQKNPILYFR',
-             'ANHLLELVTKTKVQQERDDDS',
-             'ASPFLARFATPRTGEDNJPGYYSYEQDMWVVETPQGEVPII',
-             'LELLTKTYAKVESDD',
-             'NDPKPFILNYATERVHSNIPTLGGHYCDDEHMWVDDESNTPIINLVDKNC',
-             'LLMGTETFTKTYNEGSDSDNB',
-             'MKPLILQFTEKPTEENIDYSQIEYSKKLN',
-             'SVDKKTGLPAI']
-        motif_1a = "KNKNSKKKPFFASFLEKQVKDPETVKGG"
-        motif_1b = "KAVPFFARFLEEQKEEESSEE"
-        motif_2 = "VTMKYPSDGDE"
-        motif_3 = "?"
-        motif_4 = "VTTLAIGEEGG"
-        motif_5 = "MKPYIMNYSETIEJS"
-        motif_6 = "STTITETIENSDEDE"
-        motif_7 = "YGZTLITKTREGIDRSERS"
-        motif_8 = "ANHLLELVTKTKVQQERDDDS"
-        motif_9 = "LLMGTETFTKTYNEGSDSDNB"
-        if motif_1a in fimo_motifs or motif_1b in fimo_motifs:
-            self.score += 1
-            scoring_csv_columns.append(1)
-        else:
-            scoring_csv_columns.append(0)
-        if motif_2 in fimo_motifs:
-            self.score += fimo_motifs.count(motif_2)
-            scoring_csv_columns.append(fimo_motifs.count(motif_2))
-        else:
-            scoring_csv_columns.append(0)
-        # TODO MISSING MEME 3
-        scoring_csv_columns.append(0)
-        all_fimo_motifs.extend(fimo_motifs)
-        all_fimo_score.update(fimo_scores)
-        # switch the # on the two lines below if your computer username has a space in it. # RAL
-        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_2/meme.txt".format("./ripp_modules/grasp"))
-        fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_2/meme.txt".format(FILE_DIR))
-        if motif_4 in fimo_motifs:
-            self.score += fimo_motifs.count(motif_4)
-            scoring_csv_columns.append(fimo_motifs.count(motif_4))
-        else:
-            scoring_csv_columns.append(0)
-        all_fimo_motifs.extend(fimo_motifs)
-        all_fimo_score.update(fimo_scores)
-        # switch the # on the two lines below if your computer username has a space in it. # RAL
-        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_3/meme.txt".format("./ripp_modules/grasp"))
-        fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_3/meme.txt".format(FILE_DIR))
-        if motif_5 in fimo_motifs:
-            self.score += 1
-            scoring_csv_columns.append(1)
-        else:
-            scoring_csv_columns.append(0)
-        if motif_6 in fimo_motifs:
-            self.score += fimo_motifs.count(motif_6)
-            scoring_csv_columns.append(fimo_motifs.count(motif_6))
-        else:
-            scoring_csv_columns.append(0)
-        all_fimo_motifs.extend(fimo_motifs)
-        all_fimo_score.update(fimo_scores)
-         # switch the # on the two lines below if your computer username has a space in it. # RAL
-        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_4/meme.txt".format("./ripp_modules/grasp"))   
-        fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_4/meme.txt".format(FILE_DIR))
-        if motif_7 in fimo_motifs:
-            self.score += fimo_motifs.count(motif_7)
-            scoring_csv_columns.append(fimo_motifs.count(motif_7))
-        else:
-            scoring_csv_columns.append(0)
-        all_fimo_motifs.extend(fimo_motifs)
-        all_fimo_score.update(fimo_scores)
-        # switch the # on the two lines below if your computer username has a space in it. # RAL
-        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_5/meme.txt".format("./ripp_modules/grasp"))   
-        fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_5/meme.txt".format(FILE_DIR))
-        if motif_8 in fimo_motifs:
-            self.score += fimo_motifs.count(motif_8)
-            scoring_csv_columns.append(fimo_motifs.count(motif_8))
-        else:
-            scoring_csv_columns.append(0)
-        all_fimo_motifs.extend(fimo_motifs)
-        all_fimo_score.update(fimo_scores)
-        # switch the # on the two lines below if your computer username has a space in it. # RAL
-        #fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_6/meme.txt".format("./ripp_modules/grasp"))   
-        fimo_motifs, fimo_scores = self.get_fimo_score("{}/MEME/Graspetide_6/meme.txt".format(FILE_DIR))
-        if motif_9 in fimo_motifs:
-            self.score += fimo_motifs.count(motif_9)
-            scoring_csv_columns.append(fimo_motifs.count(motif_9))
-        else:
-            scoring_csv_columns.append(0)
-        all_fimo_motifs.extend(fimo_motifs)
-        all_fimo_score.update(fimo_scores)
         
+        #Acceptor Regex
+        acc_match = re.search('([DE].{0,3}[DE].{0,3}[DE])', self.sequence)
+        if acc_match is None:
+            scoring_csv_columns.append(0)
+        else:
+            scoring_csv_columns.append(1)
+        #Donor Regex
+        don_match = re.search('([TSK].{0,3}[TSK].{0,3}[TSK])', self.sequence)
+        if don_match is None:
+            scoring_csv_columns.append(0)
+        else:
+            scoring_csv_columns.append(1)
+        #both regex
+        if acc_match and don_match:
+            scoring_csv_columns.append(1)
+            self.score += 3
+        else:
+            scoring_csv_columns.append(0)
+            
+        #FIMO motifs
+        fimo_motifs, fimo_scores = self.get_fimo_score()
+        self.fimo_motifs = sorted(fimo_motifs)
+        self.fimo_scores = sorted(fimo_scores)
+                   
+        # Is the motif present in the sequence 
+        j = 1        
+        for j in range(1, 15):
+            mot_scor1 = 0
+            for motif1 in fimo_motifs:
+                motif_split1 = motif1.split("-")
+                if int(motif_split1[0]) == j:
+                    mot_scor1 = 1 
+            scoring_csv_columns.append(mot_scor1)
+
+        # Number of each motif in sequence              
+        k = 1        
+        for k in range(1, 15):
+            mot_scor2 = 0
+            for motif2 in fimo_motifs:
+                motif_split2 = motif2.split("-")
+                if int(motif_split2[0]) == k:
+                    mot_scor2 += 1
+            # add 1 point if a leader motif found
+            if (k == 1 or 3 or 5) and (mot_scor2 > 0):
+                self.score += 1
+            # add a point for each core motif found
+            else:
+                self.score += mot_scor2
+            scoring_csv_columns.append(mot_scor2) 
+        
+        # How many total motifs are present in the sequence
+        scoring_csv_columns.append(len(fimo_motifs))
+        
+        # No Motifs
+        if len(fimo_motifs) == 0:
+            scoring_csv_columns.append(1)
+        else:
+            scoring_csv_columns.append(0)
+
         ##SVM SCORING SECTION
         scoring_csv_columns.append(min_distance_atp_grasp)
         scoring_csv_columns.append(len(self.sequence))
@@ -461,6 +423,7 @@ class Ripp(VirtualRipp):
         scoring_csv_columns.append(abs(core_charge))
         scoring_csv_columns.append(abs(leader_charge))
         scoring_csv_columns.append(abs(leader_charge + core_charge))
+        
         #Counts of AAs in leader
         scoring_csv_columns += [self.leader.count(aa) for aa in "ARDNCQEGHILKMFPSTWYV"]
         #Aromatics in leader
@@ -475,6 +438,7 @@ class Ripp(VirtualRipp):
         scoring_csv_columns.append(sum([self.leader.count(aa) for aa in "GAVLMI"]))
         #Hydroxyl in leader
         scoring_csv_columns.append(sum([self.leader.count(aa) for aa in "ST"]))
+        
         #Counts of AAs in core
         scoring_csv_columns += [self.core.count(aa) for aa in "ARDNCQEGHILKMFPSTWYV"]
         #Aromatics in core
@@ -504,29 +468,11 @@ class Ripp(VirtualRipp):
         scoring_csv_columns.append(sum([self.sequence.count(aa) for aa in "GAVLMI"]))
         #Hydroxyl in precursor
         scoring_csv_columns.append(sum([self.sequence.count(aa) for aa in "ST"]))
-        #Counts (0 or 1) of amino acids within last AA position of sequence
-        scoring_csv_columns += [self.sequence[-1].count(aa) for aa in "ARDNCQEGHILKMFPSTWYV"]
         
         #acceptor compression index TODO
         scoring_csv_columns.append(acceptor_c_index)
         #donor compression index TODO
         scoring_csv_columns.append(donor_c_index)
         
-        self.fimo_motifs = all_fimo_motifs
-        self.fimo_scores = all_fimo_score
-        #Total motifs hit
-        scoring_csv_columns.append(len(all_fimo_motifs))
-        #Motif scores
-        scoring_csv_columns += [all_fimo_score[motif] if motif in all_fimo_score else 0 for motif in all_motifs]
-        
-        #Sum of MEME scores
-        scoring_csv_columns.append(sum([all_fimo_score[motif] if motif in all_fimo_score else 0 for motif in all_motifs]))
-        #No Motifs?
-        if len(all_fimo_motifs) == 0:
-            scoring_csv_columns.append(1)
-        else:
-            scoring_csv_columns.append(0)
-        if self.leader[0] != 'M':
-            self.score += -1
         self.csv_columns += [self.score] +  scoring_csv_columns
 
