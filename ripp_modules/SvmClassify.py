@@ -82,8 +82,8 @@ class SVMRunner(object):
         self.kernel_option = 'rbf'
         self.class_weight_option = 'balanced'
         if peptide_type == 'grasp':
-            self.C_option = 2
-            self.gamma_option = 1E-5
+            self.C_option = 9.172484262400534
+            self.gamma_option = 0.00022271232130782889
         elif peptide_type == 'lasso':
             self.C_option = 6.8986
             self.gamma_option = 1E-4
