@@ -93,6 +93,9 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                         record.filter_RREs_and_HMMs(hmm_list=list(master_conf[peptide_type]["pfam_colors"].keys()))
                     elif peptide_type == "boro" and master_conf[peptide_type]['variables']['skip_mt']:
                         record.filter_RREs_and_HMMs(hmm_list=["PF00590", "NMT_1", "NMT_2", "BoroMT"])
+                    #Filter out enzymes in grasp BGCs from scoring
+                    elif peptide_type == "grasp"
+                        record.filter_RREs_and_HMMs(hmm_list=["Graspetide_synthetase", "TIGR04187", "TIGR04192", "TIGR04193", "TIGR04188", "TIGR04364", "PF01135", "TIGR00080", "PF00583", "PF13673", "PF13302", "PF13523"])
                     record.set_ripps(module, master_conf)
                     record.score_ripps(module, master_conf['general']['variables']['pfam_dir'], args.custom_hmm)
                     record.color_ripps(module)
