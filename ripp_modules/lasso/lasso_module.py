@@ -68,12 +68,14 @@ class Ripp(VirtualRipp):
                  end,
                  sequence,
                  upstream_sequence,
-                 pfam_2_coords):
+                 pfam_2_coords,
+                 pfam_2_evalue):
         super(Ripp, self).__init__(start,
                                      end,
                                      sequence,
                                      upstream_sequence,
-                                     pfam_2_coords)
+                                     pfam_2_coords,
+                                     pfam_2_evalue)
         self.peptide_type = 'lasso'
         self.set_split()
         self.set_monoisotopic_mass()

@@ -71,12 +71,14 @@ class Ripp(VirtualRipp):
                  end, 
                  sequence,
                  upstream_sequence,
-                 pfam_2_coords):
+                 pfam_2_coords,
+                 pfam_2_evalue):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
-                                     pfam_2_coords)
+                                     pfam_2_coords,
+                                     pfam_2_evalue)
         self.peptide_type = peptide_type
         self.score = 0
         self.set_split()

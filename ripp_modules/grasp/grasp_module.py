@@ -46,7 +46,7 @@ import pathlib
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
 peptide_type = "grasp"
-CUTOFF = 12
+CUTOFF = 20
 index = 0
 
 
