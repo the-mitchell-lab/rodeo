@@ -364,13 +364,14 @@ def draw_orf_table(main_html, record, peptide_type, master_conf):
     
         
 
-def write_table_of_contents(main_html, queries):
+def write_table_of_contents(main_html, queries, meta=False):
     global index
     index = 0
     main_html.write("<h3> Input Queries (click to navigate)</h3>")
     main_html.write('<ul style="list-style-type:none">')
-    for query in queries:
-        main_html.write('<li><a href="#%s">%s</a></li>' % (query, query))
+    if meta == False:
+        for query in queries:
+            main_html.write('<li><a href="#%s">%s</a></li>' % (query, query))
     main_html.write("</ul>\n")
 
 def write_failed_query(main_html, query, message):
@@ -391,14 +392,21 @@ def write_record(main_html, master_conf, record, peptide_type):
     #TABLE of CDS
     #TABLE of ORFs
     global index
-    main_html.write('<h2 id="%s"> Results for %s [%s]\n' % (record.query_accession_id, record.query_accession_id, record.cluster_genus_species))
+    if record.bait_iteration != -1:
+        main_html.write('<h2 id="%s"> Results for %s - locus %s for gene at %s in %s [%s]' % 
+                                   (record.query_accession_id, record.query_accession_id, str(record.bait_iteration + 1), 
+                                    record.cds_start_list[record.bait_iteration], record.cluster_accession, record.cluster_genus_species))
+    else:
+        main_html.write('<h2 id="%s"> Results for %s [%s]\n' % (record.query_accession_id, record.query_accession_id, record.cluster_genus_species))
     main_html.write('<a href="#header"><small><small>back to top</small></small></a></h2>') #TODO keep for single?
     main_html.write('<h2 id="num{}"><a href="#num{}"><small><small>previous</small></small></a><small><small>\t\t\t\t\t-\t\t\t\t\t</small></small><a href="#num{}"><small><small>next</small></small></a></h2>'.format(index, index-1, index+1))
     main_html.write('<p></p>') # TODO why
-    draw_orf_diagram(main_html, master_conf[peptide_type], record, peptide_type)
+    if any(record.CDSs):
+        draw_orf_diagram(main_html, master_conf[peptide_type], record, peptide_type)
     main_html.write('<p></p>') 
     main_html.write('<a href="https://www.ncbi.nlm.nih.gov/nuccore/%s">Link to nucleotide sequence</a>' % (record.cluster_accession))
     draw_cds_table(main_html, record)
     draw_orf_table(main_html, record, peptide_type, master_conf)
     index += 1
+
 
