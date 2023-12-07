@@ -188,26 +188,26 @@ class My_Record(object):
                               self.window_end + fetch_distance)
         self._clean_CDSs()
     
-    def run_radar(self):
+    def run_radar(self, output_dir):
         for CDS in self.CDSs:
-            CDS.radar_score = get_radar_score(CDS.sequence)
+            CDS.radar_score = get_radar_score(CDS.sequence, output_dir)
 
-    def get_evalue(self, primary_hmm, cust_hmm):
+    def get_evalue(self, primary_hmm, cust_hmm, output_dir):
         self.pfam_2_evalue = []
         for prots in self.CDSs:
             try:
-                evalue_temp = hmmer_utils.get_hmmer_info(prots.sequence, primary_hmm, cust_hmm)
+                evalue_temp = hmmer_utils.get_hmmer_info(prots.sequence, primary_hmm, cust_hmm, output_dir)
             except:
                 logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
                 evalue_temp = []
             for pfam_acc, desc, e_val, name in evalue_temp:
                 self.pfam_2_evalue.append((prots.accession_id, pfam_acc, e_val, prots.start, prots.end, int(abs(prots.start - prots.end)/3)))
 
-    def annotate_w_hmmer(self, primary_hmm, cust_hmm, min_length, max_length):
+    def annotate_w_hmmer(self, primary_hmm, cust_hmm, output_dir, min_length, max_length):
         self.pfam_2_coords = {}
         for CDS in self.CDSs:
             try:
-                CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, primary_hmm, cust_hmm) #Possible input for n and e_cutoff here
+                CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, primary_hmm, cust_hmm, output_dir) #Possible input for n and e_cutoff here
             except:
                 logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
                 CDS.pfam_descr_list = []
@@ -266,7 +266,7 @@ class My_Record(object):
         #return False
         
         random_tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        working_dir = "/tmp/RRE_" + random_tag + "_" + name +  "/"
+        working_dir = output_dir + "/tmp/RRE_" + random_tag + "_" + name +  "/"
         pathlib.Path(working_dir).mkdir(parents=True, exist_ok=True)
         results = self.run_RREFinder(sequence, name, working_dir)
         if results:
@@ -283,11 +283,11 @@ class My_Record(object):
             # except:
                 # logger.error("Unable to obtain results from RREFinder. Please check provided Pfam path")
 
-    def annotate_w_hmmer_nuc(self, bait_list): #min_length, max_length):
+    def annotate_w_hmmer_nuc(self, bait_list, output_dir): #min_length, max_length):
         self.pfam_2_coords = {}
         peptide_type_list = []
         for CDS in self.hypothetical_cds:
-            CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, [], bait_list) #Possible input for n and e_cutoff here
+            CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, [], bait_list, output_dir) #Possible input for n and e_cutoff here
             #if min_length <= len(CDS.sequence) <= max_length: # len(CDS.pfam_descr_list) == 0 and 
             #    self.intergenic_orfs.append(CDS)
             for annot in CDS.pfam_descr_list:
@@ -303,9 +303,9 @@ class My_Record(object):
                             peptide_type_list.append(["grasp"])
                         elif annot[0] in ["PF05147"]:
                             peptide_type_list.append(["lanthi1", "lanthi2", "lanthi3", "lanthi4"])
-                        elif annot[0] in ["PF14028"]
+                        elif annot[0] in ["PF14028"]:
                             peptide_type_list.append(["thio", "lanthi1"])
-                        elif annot[0] in ["BorosinMT"]
+                        elif annot[0] in ["BorosinMT"]:
                             peptide_type_list.append(["boro"])
                         else:
                             peptide_type_list.append([""])
@@ -341,7 +341,7 @@ class My_Record(object):
             self.intergenic_seqs.append(intergenic_sequence)
         return
         
-    def set_intergenic_orfs(self, min_aa_seq_length, max_aa_seq_length, overlap):
+    def set_intergenic_orfs(self, min_aa_seq_length, max_aa_seq_length, overlap, output_dir):
         """Examines intergenic sequences to determine whether or not there are ORFs
         that code for valid aa sequences"""
         identifier = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
@@ -349,9 +349,9 @@ class My_Record(object):
             #Seq(self.cluster_sequence[self.window_start:self.window_end]),
             self.cluster_sequence[self.window_start:self.window_end],
             id=self.cluster_accession,
-            name="prodigal")], f"/tmp/{self.cluster_accession}_{identifier}.fasta", "fasta")
-        os.system(f"prodigal -q -i /tmp/{self.cluster_accession}_{identifier}.fasta -p meta -a /tmp/{self.cluster_accession}_{identifier}_ig.fasta -f sco -o /dev/null")
-        all_orfs = SeqIO.parse(f"/tmp/{self.cluster_accession}_{identifier}_ig.fasta", "fasta")
+            name="prodigal")], f"{output_dir}/tmp/{self.cluster_accession}_{identifier}.fasta", "fasta")
+        os.system(f"prodigal -q -i {output_dir}/tmp/{self.cluster_accession}_{identifier}.fasta -p meta -a {output_dir}/tmp/{self.cluster_accession}_{identifier}_ig.fasta -f sco -o /dev/null")
+        all_orfs = SeqIO.parse(f"{output_dir}/tmp/{self.cluster_accession}_{identifier}_ig.fasta", "fasta")
         for orf_record in all_orfs:
             if not (min_aa_seq_length < len(orf_record.seq) - 1 < max_aa_seq_length):
                 continue
@@ -436,10 +436,10 @@ class My_Record(object):
         nt_seq, nt_seq_rev = self.cluster_sequence, self.cluster_sequence.reverse_complement()
         prodigal_processing.run_prodigal(record=self, whole_contig=True)
         try: 
-            prod_file = open("/tmp/%s_%sorfs.tsv" % (self.query_short, self.random_tag), 'r')
+            prod_file = open("%s/tmp/%s_%sorfs.tsv" % (output_dir, self.query_short, self.random_tag), 'r')
         except:
             time.sleep(2)
-            prod_file = open("/tmp/%s_%sorfs.tsv" % (self.query_short, self.random_tag), 'r')
+            prod_file = open("%s/tmp/%s_%sorfs.tsv" % (output_dir, self.query_short, self.random_tag), 'r')
             pass
         prod_results = prod_file.readlines()
         prod_file.close()
@@ -506,31 +506,27 @@ class My_Record(object):
                 ret_list.append(cds)
         self.intergenic_orfs = ret_list
 
-    def set_ripps(self, module, master_conf):
+    def set_ripps(self, module, master_conf, output_dir):
         logger.debug("Setting %s ripps for %s" % (module.peptide_type, self.query_accession_id))
         self.ripps[module.peptide_type] = []
         for orf in self.intergenic_orfs:
             if module.peptide_type == "grasp":
-                orf.radar_score = get_radar_score(orf.sequence)
+                orf.radar_score = get_radar_score(orf.sequence, output_dir)
             if master_conf[module.peptide_type]['variables']['precursor_min'] <= len(orf.sequence) <=  master_conf[module.peptide_type]['variables']['precursor_max'] \
                     or ("M" in orf.sequence[-master_conf[module.peptide_type]['variables']['precursor_max']:]) \
                     or (module.peptide_type == "grasp" and len(orf.sequence) < 400)\
                     or (module.peptide_type == "grasp" and orf.radar_score > 0 and len(orf.sequence) > 400):
                 if module.peptide_type == "sacti":
-                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.rre_present)
-                
-                elif module.peptide_type == "boro" or "grasp":
-                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.pfam_2_evalue) 
-                
+                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, output_dir, self.pfam_2_evalue, self.rre_present)
                 else:
-                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords)
+                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, output_dir, self.pfam_2_evalue)
                 if module.peptide_type == "grasp":
                     ripp.radar_score = orf.radar_score
                 ripp.radar_score  = orf.radar_score
                 if ripp.valid_split or master_conf[module.peptide_type]['variables']['exhaustive']:
                     self.ripps[module.peptide_type].append(ripp)
                 
-    def score_ripps(self, module, pfam_hmm, cust_hmm):
+    def score_ripps(self, module, pfam_hmm, cust_hmm, output_dir):
         logger.debug("Scoring %s ripps for %s" % (module.peptide_type, self.query_accession_id))
         for ripp in self.ripps[module.peptide_type]:
             ripp.set_score(pfam_hmm, cust_hmm)

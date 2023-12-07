@@ -59,7 +59,7 @@ logger.addHandler(ch)
 Entrez.email ='ghudson@lbl.gov'
 
 @timeout(300)
-def get_gb_handles(prot_accession_id, master_conf):
+def get_gb_handles(prot_accession_id, master_conf, meta=False):
     """Returns a list of .gb/.gbk filestreams from protein db accession.
     
     ERROR CODES:
@@ -71,7 +71,7 @@ def get_gb_handles(prot_accession_id, master_conf):
     logger.info("Fetching %s data from GenBank." % prot_accession_id)
     for i in range(tries):
         try:
-            if master_conf.meta:
+            if meta:
                 record = Entrez.read(Entrez.esearch("nuccore", term=prot_accession_id))
             else:
                 record = Entrez.read(Entrez.esearch("protein",term=prot_accession_id))
@@ -79,7 +79,7 @@ def get_gb_handles(prot_accession_id, master_conf):
             if int(total_count) >= 1:
                 IdList = record["IdList"]
                 time.sleep(0.5)
-                if master_conf.meta:
+                if meta:
                     link_records = Entrez.elink(dbfrom="nuccore", db="nuccore",id=IdList).read() # check if this step is strictly necessary when querying Genbank in meta mode
                 else:
                     link_records = Entrez.elink(dbfrom="protein", db="nuccore",id=IdList).read()
@@ -103,7 +103,7 @@ def get_gb_handles(prot_accession_id, master_conf):
                     if start == 1 and not master_conf['general']['variables']['evaluate_all']:
                               break
                     time.sleep(0.5)
-                    if master_conf.meta:
+                    if meta:
                         orig_handle = Entrez.efetch(db="nuccore", dbfrom="nuccore", rettype="gbwithparts", 
                                                    retmode="text", retstart=start, retmax=batchSize, 
                                                    webenv=webenv, query_key=query_key)
@@ -132,7 +132,7 @@ def get_gb_handles(prot_accession_id, master_conf):
 
 #gb_handle should only be a handle to ONE query 
 @timeout(300)
-def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, fasta=False):
+def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, meta=False, fasta=False, self_annotate=False, megarun=False):
     """Takes an input gb_filestream and query accession_id.
     Returns a record containing basic information about the query.
     i.e. CDSs, genus/species, sequence.
@@ -156,7 +156,7 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, fast
         any_record = False
         accession_found = False
         for record in gb_record: #Should only be one record in gb_record
-            if master_conf.megarun and len(record.seq) < 1000:
+            if megarun and len(record.seq) < 1000:
                 break
 #            if not first_record:
 #                logger.info("Multiple records in gb_record for %s." % (nuccore_accession_id))
@@ -169,7 +169,7 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, fast
             except: 
                 ret_record.cluster_genus_species = "N/A"
             for feature in record.features:
-                if master_conf.self_annotate:
+                if self_annotate:
                     break
                 if feature.type == 'CDS':
                     inferred = False
@@ -217,13 +217,13 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, fast
                     else:
                         cds.inferred = False
                     ret_record.CDSs.append(cds)
-            if master_conf.meta:
+            if meta:
                 list_of_records.append(ret_record)
                 continue
             if accession_found and any_record and len(ret_record.cluster_sequence) > 0 and len(ret_record.CDSs) > 0:
                 logger.debug("Record made for %s" % (ret_record.cluster_accession))
                 return ret_record
-        if master_conf.meta:
+        if meta:
             return list_of_records
         if not accession_found:
             logger.error("Accession %s not found." % (nuccore_accession_id))

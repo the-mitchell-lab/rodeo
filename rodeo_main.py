@@ -115,7 +115,7 @@ def __main__():
                         help="Run using nucleotide input (without requiring accession id present)")
     parser.add_argument('--wgs', action='store_true', default=False,
                         help="Run with WGS Project accession as input. --meta defaults to true")
-    parser.add_Argument('--megarun', action='store_true', default=False, 
+    parser.add_argument('--megarun', action='store_true', default=False, 
                         help='One-time large-scale analysis. Flag omits HTML files.')
     parser.add_argument('-bait', '--bait_list', nargs='*', default=[], 
                         help='Maximum size of potential ORF') 
@@ -206,6 +206,7 @@ def __main__():
     
     try:
         os.mkdir(args.output_dir + '/confs')
+        os.mkdir(args.output_dir + '/tmp')
         for conf_file in ['confs/default.conf'] + args.conf_file:
             try:
                 name = conf_file.split('/')[-1]
@@ -360,7 +361,7 @@ def __main__():
             query = record.query_accession_id
             query_no += 1
             logger.info("Writing output for query #%d.\t%s" % (query_no, query))
-            if type(record) == ErrorReport and megarun == False:
+            if type(record) == ErrorReport and args.megarun == False:
                 logger.error(("For %s:\t" + record.error_message) % (record.query))
                 ripp_html_generator.write_failed_query(main_html, record.query, record.error_message)
                 for peptide_type in peptide_types:
@@ -371,12 +372,12 @@ def __main__():
             # Write unclassified ripps
             module = nulltype_module
             if args.prodigal:
-                prod_file = open("/tmp/%s_%sorfs.tsv" % (record.query_short, record.random_tag), 'r')
+                prod_file = open("%s/tmp/%s_%sorfs.tsv" % (args.output_dir, record.query_short, record.random_tag), 'r')
                 prod_results = prod_file.readlines()
                 prod_file.close()
                 dup_removed_rows = {}
                 try:
-                    os.remove("/tmp/%s_%sorfs.tsv" % (record.query_short, record.random_tag))
+                    os.remove("%s/tmp/%s_%sorfs.tsv" % (args.output_dir, record.query_short, record.random_tag))
                 except:
                     pass
             for orf in record.intergenic_orfs:
@@ -487,13 +488,15 @@ def __main__():
             for peptide_type in peptide_types: 
                 for record in records:
                     ripp_html_generator.write_record(ripp_htmls[peptide_type], master_conf, record, peptide_type)
-     
-        
+    
+
     except KeyboardInterrupt:
         logger.critical("Keyboard interrupt recieved. Shutting down RODEO.")
         request_proc.join(5)
         for process in processes:
             process.join(5)
+
+    shutil.rmtree(args.output_dir + '/tmp')
     
 if __name__ == '__main__':
     __main__()

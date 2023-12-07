@@ -86,10 +86,10 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                 elif master_conf['general']['variables']['fetch_type'].lower() == 'nucs':
                     record.trim_to_n_nucleotides(master_conf['general']['variables']['fetch_n'])
                 if "grasp" in args.peptide_types:
-                    record.run_radar()
-                if "boro" or "grasp" in args.peptide_types:
-                    record.get_evalue(master_conf['general']['variables']['pfam_dir'], args.custom_hmm)
-                record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, 
+                    record.run_radar(args.output_dir)
+                if "boro" in args.peptide_types or "grasp" in args.peptide_types:
+                    record.get_evalue(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir)
+                record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir,
                                         min_length=master_conf['general']['variables']['precursor_min'], 
                                         max_length=master_conf['general']['variables']['precursor_max'])
                 if args.meta:
@@ -106,7 +106,7 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                                            max_length=master_conf['general']['variables']['precursor_max'])
                 record.set_intergenic_orfs(min_aa_seq_length=master_conf['general']['variables']['precursor_min'], 
                                            max_aa_seq_length=master_conf['general']['variables']['precursor_max'],
-                                           overlap=master_conf['general']['variables']['overlap'])
+                                           overlap=master_conf['general']['variables']['overlap'], output_dir=args.output_dir)
                 if args.prodigal:
                     prodigal_processing.run_prodigal(record)
                 temp_peptide_types = args.megarun
@@ -121,8 +121,8 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                     #Filter out enzymes in grasp BGCs from scoring
                     elif peptide_type == "grasp":
                         record.filter_RREs_and_HMMs(hmm_list=["Graspetide_synthetase", "TIGR04187", "TIGR04192", "TIGR04193", "TIGR04188", "TIGR04364", "PF01135", "TIGR00080", "PF00583", "PF13673", "PF13302", "PF13523"])
-                    record.set_ripps(module, master_conf)
-                    record.score_ripps(module, master_conf['general']['variables']['pfam_dir'], args.custom_hmm)
+                    record.set_ripps(module, master_conf, args.output_dir)
+                    record.score_ripps(module, master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir)
                     record.color_ripps(module)
                 if record.bait_iteration > -1:
                     logger.debug("Worker process %s finished processing locus %d in %s" % (my_id, record.bait_iteration+1, record.query_accession_id))
@@ -156,7 +156,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
         for query in queries:
             logger.debug("Fetching %s data" % query)
             if '.gbk' != query[-4:] and '.gb' != query[-3:] and '.fa' != query[-3:] and '.fasta' != query[-6:]: #accession_id
-                gb_handles = get_gb_handles(query, master_conf)
+                gb_handles = get_gb_handles(query, master_conf, meta=args.meta)
                 nuccore_accession = query
                 if type(gb_handles) is int:
                     if gb_handles == -1:
@@ -184,12 +184,12 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
             for handle in gb_handles:
                 if args.meta:
                     if '.fa' == query[-3:] or '.fasta' == query[-6:]: 
-                        records = get_record_from_gb_handle(handle, query, master_conf, fasta=True)
+                        records = get_record_from_gb_handle(handle, query, master_conf, meta=True, fasta=True, self_annotate=args.self_annotate, megarun=args.megarun)
                     else:
-                        records = get_record_from_gb_handle(handle, query, master_conf)
+                        records = get_record_from_gb_handle(handle, query, master_conf, meta=True, self_annotate=args.self_annotate, megarun=args.megarun)
                     record = records[0]
                 else:
-                    record = get_record_from_gb_handle(handle, nuccore_accession)
+                    record = get_record_from_gb_handle(handle, nuccore_accession, master_conf)
                 if type(record) is int:
                     if record == -1:
                         error_message = "Couldn't process %s Genbank filestream. May be corrupt."\
@@ -210,7 +210,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
                         else:
                             record.hypothetical_cds = record.CDSs
                         if args.bait_list:
-                            temp_peptide_types = record.annotate_w_hmmer_nuc(args.bait_list)
+                            temp_peptide_types = record.annotate_w_hmmer_nuc(args.bait_list, args.output_dir)
                         if len(record.cluster_sequence) < 20000000:
                             i = 1
                             if record.CDSs == []:
@@ -220,7 +220,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
                                     record.CDSs.append(cds)
                                     i += 1
                         try:
-                            os.remove("/tmp/%s_%sorfs.tsv" % (record.query_short, record.random_tag))
+                            os.remove("%s/tmp/%s_%sorfs.tsv" % (args.output_dir, record.query_short, record.random_tag))
                         except:
                             pass
                         if record.cds_start_list == [] and not args.bait_list:

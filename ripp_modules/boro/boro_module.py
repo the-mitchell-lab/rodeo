@@ -82,6 +82,7 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+                 output_dir,
                  pfam_2_evalue):
         
         super(Ripp, self).__init__(start, 
@@ -89,6 +90,7 @@ class Ripp(VirtualRipp):
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+                                     output_dir,
                                      pfam_2_evalue)
                                      
         self.peptide_type = 'boro'
@@ -205,7 +207,7 @@ class Ripp(VirtualRipp):
 
 # Stores precursor PFAM & HMM hits 
 
-        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_dir, cust_hmm)      
+        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_dir, cust_hmm, self.output_dir)      
         prec_pfams = []
         for pfam_dot, _, pf_evalue, _, in precursor_hmm_info:
             prec_pfams.append(pfam_dot.split('.')[0])

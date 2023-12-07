@@ -72,12 +72,14 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+				 output_dir,
                  pfam_2_evalue):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+									 output_dir,
                                      pfam_2_evalue)
         self.peptide_type = peptide_type
         self.score = 0
@@ -231,7 +233,7 @@ class Ripp(VirtualRipp):
         if self.leader[-2:] == "KRC":
             self.score += 2
         
-        hmmer_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_hmm, cust_hmm)
+        hmmer_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_hmm, cust_hmm, self.output_dir)
         targets = "PF08130.1", "PF04604.12", "PF14867.5", "PF16934.4", "PF02979.15", "PF07862.10"
         if any([hit[0] in targets for hit in hmmer_info]):
             self.score + 10

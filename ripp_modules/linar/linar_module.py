@@ -69,12 +69,14 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+				 output_dir,
                  pfam_2_evalue):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+				                     output_dir,
                                      pfam_2_evalue)
         self.peptide_type = 'linar'
         self.set_split()
@@ -212,7 +214,7 @@ class Ripp(VirtualRipp):
         #Positive hit for LinA.hmm file at e-value < 0.001
         # switch the # on the two lines below if your computer username has a space in it.     # RAL
         #precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format("./ripp_modules/linar"), "", n=1)
-        precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format(FILE_DIR), "", n=1)
+        precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format(FILE_DIR), "", self.output_dir, n=1)
         if precursor_pfam and len(self.sequence) < 120:
             score += 10
 

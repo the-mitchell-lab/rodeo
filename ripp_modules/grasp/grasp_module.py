@@ -72,12 +72,14 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+                 output_dir,
                  pfam_2_evalue):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+                                     output_dir,
                                      pfam_2_evalue)
         self.peptide_type = 'grasp'
         self.set_split()
@@ -314,7 +316,7 @@ class Ripp(VirtualRipp):
         else:
             scoring_csv_columns.append(0)
             
-        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_dir, cust_hmm)
+        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_dir, cust_hmm, self.output_dir)
         pfams = []
         for pfam_dot, _, _, _, in precursor_hmm_info:
             pfams.append(pfam_dot.split('.')[0])

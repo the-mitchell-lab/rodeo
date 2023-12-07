@@ -109,11 +109,11 @@ def _parse(n, e_cutoff):
             ret_list_final.append((acc, desc, e_val, name))
     return ret_list_final
 
-def get_hmmer_info(query, primary_hmm, cust_hmm, n=5, e_cutoff=.001, query_is_accession=False): #TODO handle lists of accessions
+def get_hmmer_info(query, primary_hmm, cust_hmm, output_dir, n=5, e_cutoff=.001, query_is_accession=False): #TODO handle lists of accessions
     """Returns top n hmmscan hits with e_values lower than e_cutoff"""
     try:
         global pid_prefix
-        pid_prefix = "/tmp/" + str(os.getpid())
+        pid_prefix = output_dir + "/tmp/" + str(os.getpid())
         _generate_fasta_from_string(query)
         pfam_desc_list = []
         try:
