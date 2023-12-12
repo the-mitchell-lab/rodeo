@@ -116,12 +116,12 @@ def get_hmmer_info(query, primary_hmm, cust_hmm, output_dir, n=5, e_cutoff=.001,
         pid_prefix = output_dir + "/tmp/" + str(os.getpid())
         _generate_fasta_from_string(query)
         pfam_desc_list = []
-        try:
-            if primary_hmm:
+        if primary_hmm != "":
+            try:
                 _generate_hmmer(primary_hmm)
                 pfam_desc_list = _parse(n, e_cutoff) 
-        except OSError:
-            logger.error("Couldn't find %s" % (primary_hmm)) 
+            except OSError:
+                logger.error("Couldn't find %s" % (primary_hmm)) 
         
         for hmm in cust_hmm:
             if WEB_TOOL:

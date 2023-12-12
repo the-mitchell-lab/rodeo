@@ -85,9 +85,10 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                     record.trim_to_n_orfs(master_conf['general']['variables']['fetch_n'], master_conf['general']['variables']['fetch_distance'])
                 elif master_conf['general']['variables']['fetch_type'].lower() == 'nucs':
                     record.trim_to_n_nucleotides(master_conf['general']['variables']['fetch_n'])
-                if "grasp" in args.peptide_types:
+                if "grasp" in record.peptide_types or ("grasp" in args.peptide_types and args.meta==False):
                     record.run_radar(args.output_dir)
-                if "boro" in args.peptide_types or "grasp" in args.peptide_types:
+                record.pfam_2_evalue = []
+                if ("boro" in args.peptide_types and args.meta==False) or ("grasp" in args.peptide_types and args.meta ==False) or "boro" in record.peptide_types or "grasp" in record.peptide_types:
                     record.get_evalue(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir)
                 record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir,
                                         min_length=master_conf['general']['variables']['precursor_min'], 
@@ -100,19 +101,22 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                             del record.CDSs[k]
                         else:
                             k += 1
-                if megarun == False:
-                    record.annotate_w_RREFinder()
+                #if args.megarun == False:
+                #    record.annotate_w_RREFinder()
                 record.set_intergenic_seqs(min_length=master_conf['general']['variables']['precursor_min'], 
                                            max_length=master_conf['general']['variables']['precursor_max'])
                 record.set_intergenic_orfs(min_aa_seq_length=master_conf['general']['variables']['precursor_min'], 
                                            max_aa_seq_length=master_conf['general']['variables']['precursor_max'],
                                            overlap=master_conf['general']['variables']['overlap'], output_dir=args.output_dir)
                 if args.prodigal:
-                    prodigal_processing.run_prodigal(record)
-                temp_peptide_types = args.megarun
-                if args.megarun:
-                    te
+                    prodigal_processing.run_prodigal(record, args.output_dir)
+                #temp_peptide_types = args.peptide_types
+                #print(args.peptide_types)
+                #if args.megarun:
+                #    temp_peptide_types = record.peptide_types
                 for peptide_type in args.peptide_types:
+                    if args.meta and peptide_type not in record.peptide_types:
+                        continue
                     module = ripp_modules[peptide_type]
                     if peptide_type == "lasso":
                         record.filter_RREs_and_HMMs(hmm_list=list(master_conf[peptide_type]["pfam_colors"].keys()))
@@ -206,11 +210,11 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
                     for record in records:
                         temp_peptide_types = []
                         if record.CDSs == []:
-                            record.set_hypothetical_cds(50, 20000, 1000)
+                            record.set_hypothetical_cds(50, 20000, 1000, args.output_dir)
                         else:
                             record.hypothetical_cds = record.CDSs
                         if args.bait_list:
-                            temp_peptide_types = record.annotate_w_hmmer_nuc(args.bait_list, args.output_dir)
+                            record.annotate_w_hmmer_nuc(args.bait_list, args.output_dir)
                         if len(record.cluster_sequence) < 20000000:
                             i = 1
                             if record.CDSs == []:
@@ -228,7 +232,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
                         else:
                             for i in range(0,len(record.cds_start_list)):
                                 record.bait_iteration = i
-                                record.peptide_types = temp_peptide_types[i]
+                                record.peptide_types = list(set(record.peptide_type_list[record.bait_iteration]))
                                 unprocessed_records_q.put(record)
                 else:
                     unprocessed_records_q.put(record)

@@ -215,7 +215,7 @@ def __main__():
                  logger.warning("Problem copying configuration file {}".format("conf_file"))
     except:
         logger.warning("Problem creating configuration copy directory")
-    if args.bait_list:
+    if args.bait_list or args.megarun:
         args.meta = True
     if args.meta:
         args.prodigal = True 
@@ -224,7 +224,7 @@ def __main__():
         args.print_precursors = True
     if args.prodigal:
         try:
-            os.mkdir(os.path.join(RODEO_DIR, '/prodigal/'))
+            os.mkdir(args.output_dir + '/prodigal/')
         except:
             logger.warning("Problem creating prodigal results directory")
     if overwriting_folder:
@@ -281,8 +281,8 @@ def __main__():
     output_dir = args.output_dir
     module = nulltype_module
     
-    module.main_write_headers(output_dir)
-    module.co_occur_write_headers(output_dir)
+    module.main_write_headers(output_dir, args.meta)
+    module.co_occur_write_headers(output_dir, args.meta)
     if args.prodigal:
         module.prod_write_headers(output_dir)
     if args.megarun == False:
@@ -320,10 +320,10 @@ def __main__():
         else:
             logger.error("%s not in supported RiPP types" % (peptide_type))
             continue
+        ripp_modules[peptide_type] = module
         if args.megarun == False:
             os.mkdir(output_dir + "/" + peptide_type)
-            module.write_csv_headers(output_dir)
-            ripp_modules[peptide_type] = module
+            module.write_csv_headers(output_dir, args.meta)
             ripp_htmls[peptide_type] = open(output_dir + "/" + peptide_type + "/" + peptide_type + "_results.html", 'w')
             ripp_html_generator.write_header(ripp_htmls[peptide_type], master_conf, peptide_type)
             ripp_html_generator.write_table_of_contents(ripp_htmls[peptide_type], queries)
@@ -335,7 +335,7 @@ def __main__():
     m = multiprocessing.Manager()
     processed_records_q = m.Queue(max(args.num_cores, 60))
     unprocessed_records_q = m.Queue(max(args.num_cores, 60))
-    
+
     #Nest all in try in case of KeyboardInterrupt
     try:
         for i in range(args.num_cores):
@@ -386,7 +386,7 @@ def __main__():
                 else:
                     direction = "-"
                 if args.meta:
-                    row = [query + "_" + record.random_tag, record.cluster_genus_species, record.cluster_accession, 
+                    row = [query + "_" + record.random_tag, record.bait_iteration, record.cluster_genus_species, record.cluster_accession, 
                         orf.start, orf.end, direction, orf.sequence]
                 else:
                     row = [query, record.cluster_genus_species, record.cluster_accession, 
@@ -424,30 +424,35 @@ def __main__():
                     direction = "+"
                 else:
                     direction = "-"
-                row = [query, record.cluster_genus_species, record.cluster_accession,
-                       cds.accession_id, cds.start, cds.end, direction]
+                if args.meta:
+                    row = [query, record.bait_iteration, record.cluster_genus_species, record.cluster_accession,
+                        cds.accession_id, cds.start, cds.end, direction]
+                else:
+                    row = [query, record.cluster_genus_species, record.cluster_accession,
+                        cds.accession_id, cds.start, cds.end, direction]
                 for pfam_acc, desc, e_val, name in cds.pfam_descr_list:
                     row += [pfam_acc, name, desc, e_val]
                 module.co_occur_write_row(output_dir, row)
             
-            if args.megarun == False:    
+            if args.megarun == False: 
                 ripp_html_generator.write_record(main_html, master_conf, record, 'general')
             
             # Write type-specific ripps
-            if args.meta: 
+            if args.meta:
                 for peptide_type in record.peptide_types:
                     list_of_rows = []
                     module = ripp_modules[peptide_type]
                     if args.megarun:
-                        os.mkdir(output_dir + "/" + peptide_type)
-                        module.write_csv_headers(output_dir)
+                        if os.path.exists(output_dir + "/" + peptide_type) == False:
+                            os.mkdir(output_dir + "/" + peptide_type)
+                            module.write_csv_headers(output_dir, args.meta)
                     for ripp in record.ripps[peptide_type]:
                         if master_conf[peptide_type]['variables']['precursor_min'] <= len(ripp.sequence) <= master_conf[peptide_type]['variables']['precursor_max'] \
                             or ("M" in ripp.sequence[-master_conf[peptide_type]['variables']['precursor_max']:]) \
                             or (module.peptide_type == "grasp" and ripp.radar_score > 0 and len(ripp.sequence) > 400):
                             list_of_rows.append(ripp.csv_columns)
                     VirtualRipp.ripp_write_rows(args.output_dir, peptide_type, record.query_accession_id + "_" + record.random_tag, #cluster acc or query acc?
-                                           record.cluster_genus_species, list_of_rows)
+                                           record.cluster_genus_species, list_of_rows, meta=True, locus=record.bait_iteration)
             else:
                 for peptide_type in args.peptide_types:
                     list_of_rows = []
@@ -467,10 +472,12 @@ def __main__():
 
         # Update score w SVM
         try:
-            for peptide_type in peptide_types:
+            for peptide_type in args.peptide_types:
+                if os.path.exists(output_dir + "/" + peptide_type) == False:
+                    continue
                 module = ripp_modules[peptide_type]
-                VirtualRipp.run_svm(output_dir, peptide_type, module.CUTOFF)
-            My_Record.update_score_w_svm(output_dir, records)
+                VirtualRipp.run_svm(output_dir, args.meta, peptide_type, module.CUTOFF)
+                My_Record.update_score_w_svm(output_dir, peptide_type, records)
         except KeyboardInterrupt:
             raise KeyboardInterrupt
         except IndexError:
@@ -485,18 +492,28 @@ def __main__():
             traceback.print_exc(file=sys.stdout)
         
         if args.megarun == False:
-            for peptide_type in peptide_types: 
+            if args.meta:
                 for record in records:
-                    ripp_html_generator.write_record(ripp_htmls[peptide_type], master_conf, record, peptide_type)
+                    for peptide_type in record.peptide_types:
+                        ripp_html_generator.write_record(ripp_htmls[peptide_type], master_conf, record, peptide_type)
+            else:
+                for record in records:
+                    for peptide_type in peptide_types: 
+                        ripp_html_generator.write_record(ripp_htmls[peptide_type], master_conf, record, peptide_type)
     
+
 
     except KeyboardInterrupt:
         logger.critical("Keyboard interrupt recieved. Shutting down RODEO.")
+        shutil.rmtree(args.output_dir + '/tmp')
         request_proc.join(5)
         for process in processes:
             process.join(5)
+        os.kill(os.getpid(), "")
 
     shutil.rmtree(args.output_dir + '/tmp')
+    if args.megarun:
+        shutil.rmtree(args.output_dir + '/confs/')
     
 if __name__ == '__main__':
     __main__()

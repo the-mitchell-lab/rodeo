@@ -49,17 +49,17 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-def run_prodigal(record, whole_contig=False):
+def run_prodigal(record, output_dir, whole_contig=False):
     try:
         #print(record.query_short)
         if whole_contig:
-            prod_prefix = "/tmp/" + record.query_short + "_" + record.random_tag
+            prod_prefix = output_dir + "/tmp/" + record.query_short + "_" + record.random_tag
             prod_os_file = open(prod_prefix+"os.txt", 'w')
             prod_use_file = open(prod_prefix+"prod.fasta", 'w')
             prod_use_file.write(">%s %s %s\n%s" % (record.query_accession_id + "_" + record.random_tag, record.genus, record.species, 
                             record.cluster_sequence))
         else:
-            prod_prefix = "/tmp/" + record.query_short + "_" + record.random_tag
+            prod_prefix = output_dir + "/tmp/" + record.query_short + "_" + record.random_tag
             prod_os_file = open(prod_prefix+"os.txt", 'w')
             prod_use_file = open(prod_prefix+"prod.fasta", 'w')
             prod_use_file.write(">%s %s %s\n%s" % (record.query_accession_id  + "_" + record.random_tag, record.genus, record.species, 
@@ -81,50 +81,6 @@ def run_prodigal(record, whole_contig=False):
             							"-t", prod_prefix+"train.txt", "-s", prod_prefix+"orfs.tsv", "-q"], stdout=prod_os_file, stderr=prod_os_file)
             process.wait()
              
-        try:
-            os.remove(prod_prefix+"train.fasta")
-        except:
-            pass
-        try:
-            os.remove(prod_prefix+"output.txt")
-        except:
-            pass
-        try:
-            os.remove(prod_prefix+"prod.fasta")
-        except:
-            pass
-        try:
-            os.remove(prod_prefix+"train.txt")
-        except:
-            pass
-        try:
-        	os.remove(prod_prefix+"os.txt")
-        except:
-        	pass
-    except KeyboardInterrupt:
-        try:
-            os.remove(prod_prefix+"train.fasta")
-        except:
-            pass
-        try:
-            os.remove(prod_prefix+"output.txt")
-        except:
-            pass
-        try:
-            os.remove(prod_prefix+"prod.fasta")
-        except:
-            pass
-        try:
-            os.remove(prod_prefix+"train.txt")
-        except:
-            pass
-        try:
-            os.remove(prod_prefix+"orfs.tsv")
-        except:
-            pass
-        try:
-        	os.remove(prod_prefix+"os.txt")
-        except:
-        	pass
+    except:
         logger.critical("SIGINT recieved during Prodigal")
         raise KeyboardInterrupt

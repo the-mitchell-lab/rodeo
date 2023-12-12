@@ -87,6 +87,7 @@ class My_Record(object):
         self.query_short = query_accession_id.replace(".", "_").replace("\t", "_").replace("/", "_")[:20] #split(".")[0].split("\t")[0]
         self.random_tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
         self.peptide_types = []
+        self.peptide_type_list = []
         self.cluster_accession = ""
         self.cluster_sequence = ""
         self.cluster_length = ""
@@ -103,11 +104,13 @@ class My_Record(object):
         self.bait_iteration = -1
         self.prod_window_start = 0
         self.prod_window_end = 0
+        self.extra_window = dict()
         self.window_start = 0
         self.window_end = 0
         self.start_codons = ['ATG','GTG', 'TTG']
         self.stop_codons = ['TAA','TAG','TGA']
         self.ripps = {}
+        self.rre_present = False
         
     
     def _get_query_index(self):
@@ -164,7 +167,8 @@ class My_Record(object):
             else:
                 self.window_start = max(0, min(self.cds_start_list[self.bait_iteration]-n, self.cds_end_list[self.bait_iteration]-n))
                 self.window_end = min(len(self.cluster_sequence), 
-                                      max(self.cds_start_list[self.bait_iteration]+n, self.cds_end_list[self.bait_iteration]+n))
+                                      max(self.cds_start_list[self.bait_iteration]+n+self.extra_window[self.cds_start_list[self.bait_iteration]],
+                                            self.cds_end_list[self.bait_iteration]+n+self.extra_window[self.cds_start_list[self.bait_iteration]]))
         except OSError:
             logger.error("Error finding bait hmm hit")
 
@@ -196,7 +200,7 @@ class My_Record(object):
         self.pfam_2_evalue = []
         for prots in self.CDSs:
             try:
-                evalue_temp = hmmer_utils.get_hmmer_info(prots.sequence, primary_hmm, cust_hmm, output_dir)
+                evalue_temp = hmmer_utils.get_hmmer_info(str(prots.sequence), primary_hmm, cust_hmm, output_dir)
             except:
                 logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
                 evalue_temp = []
@@ -207,10 +211,11 @@ class My_Record(object):
         self.pfam_2_coords = {}
         for CDS in self.CDSs:
             try:
-                CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, primary_hmm, cust_hmm, output_dir) #Possible input for n and e_cutoff here
+                CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(str(CDS.sequence), primary_hmm, cust_hmm, output_dir) #Possible input for n and e_cutoff here
             except:
                 logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
                 CDS.pfam_descr_list = []
+                break
             if min_length <= len(CDS.sequence) <= max_length: # len(CDS.pfam_descr_list) == 0 and 
                 if not any(any(fam in annot[0] for fam in no_ripp_pfams) for annot in CDS.pfam_descr_list) and not CDS.isRRE:
                     self.intergenic_orfs.append(CDS)
@@ -276,7 +281,6 @@ class My_Record(object):
         return False
 
     def annotate_w_RREFinder(self):
-        self.rre_present = False
         for CDS in self.CDSs:
             CDS.isRRE = self.has_RRE(CDS.sequence, CDS.accession_id) #Possible input for n and e_cutoff here
             self.rre_present = self.rre_present or CDS.isRRE
@@ -285,31 +289,46 @@ class My_Record(object):
 
     def annotate_w_hmmer_nuc(self, bait_list, output_dir): #min_length, max_length):
         self.pfam_2_coords = {}
-        peptide_type_list = []
+        temp_extra_window = 0
         for CDS in self.hypothetical_cds:
-            CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, [], bait_list, output_dir) #Possible input for n and e_cutoff here
+            CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(str(CDS.sequence), "", bait_list, output_dir) #Possible input for n and e_cutoff here
             #if min_length <= len(CDS.sequence) <= max_length: # len(CDS.pfam_descr_list) == 0 and 
             #    self.intergenic_orfs.append(CDS)
+            temp_peptide_type_list = []
             for annot in CDS.pfam_descr_list:
                 if any(annot[0]):
                     if annot[0] == "PF05402":
                         CDS.isRRE = True
-                    if float(annot[2]) < 1.0E-5:
+                    if annot[0] in ["PF13471", "PF00733"]:
+                        temp_peptide_type_list.append("lasso")
+                    if annot[0] in ["TIGR04184"]:
+                        temp_peptide_type_list.append("grasp")
+                    if annot[0] in ["PF05147"]:
+                        temp_peptide_type_list.append("lanthi1")
+                        temp_peptide_type_list.append("lanthi2")
+                        temp_peptide_type_list.append("lanthi3")
+                        temp_peptide_type_list.append("lanthi4")
+                    if annot[0] in ["PF14028", "PF04738"]:
+                        temp_peptide_type_list.append("thio")
+                        temp_peptide_type_list.append("lanthi1")
+                    if annot[0] in ["BorosinMT"]:
+                        temp_peptide_type_list.append("boro")
+                    if self.cds_start_list == []:
                         self.cds_start_list.append(CDS.start)
                         self.cds_end_list.append(CDS.end)
-                        if annot[0] in ["PF13471", "PF00733"]:
-                            peptide_type_list.append(["lasso"])
-                        elif annot[0] in ["TIGR04184"]:
-                            peptide_type_list.append(["grasp"])
-                        elif annot[0] in ["PF05147"]:
-                            peptide_type_list.append(["lanthi1", "lanthi2", "lanthi3", "lanthi4"])
-                        elif annot[0] in ["PF14028"]:
-                            peptide_type_list.append(["thio", "lanthi1"])
-                        elif annot[0] in ["BorosinMT"]:
-                            peptide_type_list.append(["boro"])
-                        else:
-                            peptide_type_list.append([""])
-        return peptide_type_list
+                        self.peptide_type_list.append(list(set(temp_peptide_type_list)))
+                        self.extra_window.update({CDS.start:0})
+                    elif abs(CDS.start - self.cds_start_list[-1]) > (10000 + temp_extra_window) and abs(CDS.start - self.cds_end_list[-1]) > (10000 + temp_extra_window):
+                        self.cds_start_list.append(CDS.start)
+                        self.cds_end_list.append(CDS.end)
+                        self.peptide_type_list.append(list(set(temp_peptide_type_list)))
+                        self.extra_window.update({CDS.start:0})
+                        temp_extra_window = 0
+                    else:
+                        for peptide_type in temp_peptide_type_list:
+                            self.peptide_type_list[-1].append(peptide_type)
+                        self.extra_window[self.cds_start_list[-1]] = CDS.start - self.cds_start_list[-1]
+                        temp_extra_window = CDS.start - self.cds_start_list[-1]
 
     def set_intergenic_seqs(self, min_length, max_length):
         """Sets the sequences between called CDSs"""
@@ -430,11 +449,11 @@ class My_Record(object):
             self.hypothetical_seqs.append(intergenic_sequence)
         return
 
-    def set_hypothetical_cds(self, min_aa_seq_length, max_aa_seq_length, overlap):
+    def set_hypothetical_cds(self, min_aa_seq_length, max_aa_seq_length, overlap, output_dir):
         """Examines intergenic sequences to determine whether or not there are ORFs
         that code for valid aa sequences"""
         nt_seq, nt_seq_rev = self.cluster_sequence, self.cluster_sequence.reverse_complement()
-        prodigal_processing.run_prodigal(record=self, whole_contig=True)
+        prodigal_processing.run_prodigal(record=self, output_dir=output_dir, whole_contig=True)
         try: 
             prod_file = open("%s/tmp/%s_%sorfs.tsv" % (output_dir, self.query_short, self.random_tag), 'r')
         except:
@@ -584,36 +603,43 @@ class My_Record(object):
 
         
     
-def update_score_w_svm(output_dir, records):
+def update_score_w_svm(output_dir, peptide_type, records):
         """Order should be preserved. Goes through file and updates scores"""
-        for peptide_type in records[0].ripps.keys():
-            score_reader = csv.reader(open(output_dir + '/' + peptide_type + '/' +\
-                                           peptide_type + '_features.csv')) 
-            header = next(score_reader)
-            score_col = 6
-            try:
-                score_col = header.index("Total Score")
-            except ValueError:
-                logger.error("Temporary CSV format invalid. No column named \"Total Score\". Score results are most likely invalid.")
-            
-            score_reader_done = False
-            total_ripps = 0
-            for record in records:
-                total_ripps += len(record.ripps[peptide_type])
-                for ripp in record.ripps[peptide_type]:
-                    if not score_reader_done:
-                        try:
-                            line = next(score_reader)
-                        except KeyboardInterrupt:
-                            raise KeyboardInterrupt
-                        except Exception as e:
-                            import traceback as tb
-                            tb.print_exc()
-                            print(e)
-                            score_reader_done = True
-                            logger.warning("Mismatch in RiPP count and length of CSV. Score results are most likely invalid")
-                            print(total_ripps)
-                            return
-                    ripp.score = int(line[score_col])
-                    ripp.confidence = float(ripp.score)/(ripp.CUTOFF)
+        score_reader = csv.reader(open(output_dir + '/' + peptide_type + '/' +\
+                                       peptide_type + '_features.csv')) 
+        header = next(score_reader)
+        score_col = 6
+        try:
+            score_col = header.index("Total Score")
+        except ValueError:
+            logger.error("Temporary CSV format invalid. No column named \"Total Score\". Score results are most likely invalid.")
+        
+        score_reader_done = False
+        total_ripps = 0
+        for record in records:
+            if peptide_type not in record.peptide_types:
+                continue
+            total_ripps += len(record.ripps[peptide_type])
+            for ripp in record.ripps[peptide_type]:
+                if not score_reader_done:
+                    try:
+                        line = next(score_reader)
+                    except KeyboardInterrupt:
+                        raise KeyboardInterrupt
+                    except Exception as e:
+                        import traceback as tb
+                        tb.print_exc()
+                        print(e)
+                        score_reader_done = True
+                        logger.warning("Mismatch in RiPP count and length of CSV. Score results are most likely invalid")
+                        print(total_ripps)
+                        return
+                ripp.score = int(line[score_col])
+                ripp.confidence = float(ripp.score)/(ripp.CUTOFF)
 
+        try:
+            os.remove(output_dir + "/" + peptide_type + "/fitting_results.csv")
+            os.remove(output_dir + "/" + peptide_type + "/fitting_set.csv")
+            os.remove(output_dir + "/" + peptide_type + "/temp_features.csv")
+        except:
+            pass

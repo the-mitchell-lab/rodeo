@@ -84,7 +84,7 @@ def execute(commands, input=None):
         raise e
 
 
-def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_of_rows, feature_count=5):
+def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_of_rows, feature_count=5, meta=False, locus=-1):
     dir_prefix = output_dir + '/{}/'.format(peptide_type)
     global index
     features_csv_file = open(dir_prefix + "temp_features.csv", 'a')
@@ -96,11 +96,14 @@ def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_
     if peptide_type == "grasp":
         feature_count =9
     for row in list_of_rows:
-        features_writer.writerow([accession_id, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
+        if meta:
+            features_writer.writerow([accession_id, locus, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
+        else:
+            features_writer.writerow([accession_id, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
         svm_writer.writerow([index, ''] + row[feature_count:]) #Don't include accession_id, leader, core sequence, start, end, or score
         index += 1
         
-def run_svm(output_dir, peptide_type, cutoff, feature_count=5):
+def run_svm(output_dir, meta, peptide_type, cutoff, feature_count=5):
     runner = svmc.SVMRunner(peptide_type, output_dir)
     runner.run_svm()
     svm_output_reader = csv.reader(open(os.path.join(output_dir, "{}/fitting_results.csv".format(peptide_type))))
@@ -112,6 +115,8 @@ def run_svm(output_dir, peptide_type, cutoff, feature_count=5):
         feature_count=11
     if peptide_type == "grasp":
         feature_count =9
+    if meta:
+        feature_count +=1
     for row, svm_output_line in zip(features_reader, svm_output_reader):
         svm_output = svm_output_line[1]
         row[feature_count+4] = svm_output

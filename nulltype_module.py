@@ -31,8 +31,11 @@
 
 import csv
 
-def main_write_headers(output_folder):
-    headers = ['Query', 'Genus/Species', 'Nucleotide_acc', 'start', 'end', 'dir', 'AA_seq']
+def main_write_headers(output_folder, meta=False):
+    if meta:
+        headers = ['Query', 'Locus', 'Genus/Species', 'Nucleotide_acc', 'start', 'end', 'dir', 'AA_seq']
+    else:
+        headers = ['Query', 'Genus/Species', 'Nucleotide_acc', 'start', 'end', 'dir', 'AA_seq']
     features_writer = csv.writer(open(output_folder + "/main_results.csv", 'w'))
     features_writer.writerow(headers)
     
@@ -40,8 +43,14 @@ def main_write_row(output_folder, row):
     features_writer = csv.writer(open(output_folder + "/main_results.csv", 'a'))
     features_writer.writerow(row)
     
-def co_occur_write_headers(output_folder):
-    headers = ['Query', 'Genus/Species', 'Nucleotide_acc', 'Protein_acc', 'start', 'end', 'dir',\
+def co_occur_write_headers(output_folder, meta):
+    if meta:
+        headers = ['Query', 'Locus', 'Genus/Species', 'Nucleotide_acc', 'Protein_acc', 'start', 'end', 'dir',\
+               'PfamID1', 'Name1', 'Description1', 'E-value1',
+               'PfamID2', 'Name2', 'Description2', 'E-value2',
+               'PfamID3', 'Name3', 'Description3', 'E-value3']
+    else:
+        headers = ['Query', 'Genus/Species', 'Nucleotide_acc', 'Protein_acc', 'start', 'end', 'dir',\
                'PfamID1', 'Name1', 'Description1', 'E-value1',
                'PfamID2', 'Name2', 'Description2', 'E-value2',
                'PfamID3', 'Name3', 'Description3', 'E-value3']
