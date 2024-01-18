@@ -241,7 +241,8 @@ def __main__():
     if not any(general_conf['variables']['fetch_type'].lower() == ft for ft in ['cds', 'nucs']):
         logger.critical("Invalid argument for -ft/-fetch_type")
         return None
-    
+    if args.megarun:
+        args.peptide_types = ['boro', 'grasp', 'lanthi1', 'lanthi2', 'lanthi3', 'lanthi4', 'lasso', 'linar', 'sacti', 'thio']
     if any(pt in ['sacti', 'lanthi', 'linar', 'grasp'] for pt in args.peptide_types):
         if not any ("tigr" in hmm_name.lower() for hmm_name in args.custom_hmm):
             logger.warn("Lanthi, sacti, and/or linar heuristics require TIGRFAM hmm. Make sure its location is specified with the -hmm or --custom_hmm flag.")
@@ -452,7 +453,7 @@ def __main__():
                             or (module.peptide_type == "grasp" and ripp.radar_score > 0 and len(ripp.sequence) > 400):
                             list_of_rows.append(ripp.csv_columns)
                     VirtualRipp.ripp_write_rows(args.output_dir, peptide_type, record.query_accession_id + "_" + record.random_tag, #cluster acc or query acc?
-                                           record.cluster_genus_species, list_of_rows, meta=True, locus=record.bait_iteration)
+                                           record.cluster_genus_species, list_of_rows, meta=True, locus=record.bait_iteration, cluster_accession=record.cluster_accession)
             else:
                 for peptide_type in args.peptide_types:
                     list_of_rows = []

@@ -157,7 +157,7 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, meta
         accession_found = False
         for record in gb_record: #Should only be one record in gb_record
             if megarun and len(record.seq) < 1000:
-                break
+                continue
 #            if not first_record:
 #                logger.info("Multiple records in gb_record for %s." % (nuccore_accession_id))
             any_record = True

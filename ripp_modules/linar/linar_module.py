@@ -55,7 +55,7 @@ def write_csv_headers(output_dir, meta=False):
     svm_headers = 'PK,Classification,Contains ABC Transporter,Contains n-methyl transferase,Contains flavin decarboxylase,Has CXXC motif and flavin decarboxylase in BGC,Has GST motif and flavin decarboxylase,Gene cluster and precursor in same direction,Charge of leader <1 at pH 7,Core contains >2 Cysteine,Leader contains 0 Cysteine,Core % Aliphatic and Dhb residues,Core begins with XTP motif,Leader contains GXG motif,Leader contains LXD motif,Leader contains FAN motif,Distance from LinG homolog,Length of precursor,Leader Percent A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,% Aromatics,% Negative,% Positive,% Charged,% Aliphatic,% Hydroxyl,Core percent A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,% Aromatics,% Negative,% Positive,% Charged,% Aliphatic,% Hydroxyl,Relative charge of core,Relative charge of leader,Relative charge of precursor,Absolute charge of core,Absolute charge of Leader,Absolute charge of precursor' #,Motif 1,2,3,4,5,6,7,8,Number of motifs hit,Motif score 1,2,3,4,5,6,7,8,Total motif score,No motifs hit'
     svm_headers = svm_headers.split(',')
     if meta:
-        features_headers = ["Accession_id", "Locus", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
+        features_headers = ["Accession_id", "Locus", "Genus/Species/Code", 'Nucleotide_Acc', "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     else:
         features_headers = ["Accession_id", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')

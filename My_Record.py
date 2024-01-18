@@ -287,7 +287,7 @@ class My_Record(object):
             # except:
                 # logger.error("Unable to obtain results from RREFinder. Please check provided Pfam path")
 
-    def annotate_w_hmmer_nuc(self, bait_list, output_dir): #min_length, max_length):
+    def annotate_w_hmmer_nuc(self, bait_list, output_dir, args_peptide_types): #min_length, max_length):
         self.pfam_2_coords = {}
         temp_extra_window = 0
         for CDS in self.hypothetical_cds:
@@ -300,19 +300,28 @@ class My_Record(object):
                     if annot[0] == "PF05402":
                         CDS.isRRE = True
                     if annot[0] in ["PF13471", "PF00733"]:
-                        temp_peptide_type_list.append("lasso")
-                    if annot[0] in ["TIGR04184"]:
-                        temp_peptide_type_list.append("grasp")
+                        if "lasso" in args_peptide_types:
+                            temp_peptide_type_list.append("lasso")
+                    if annot[0] in ["Graspetide_synthetase"]:
+                        if "grasp" in args_peptide_types and annot[2] < 1e-30:
+                            temp_peptide_type_list.append("grasp")
                     if annot[0] in ["PF05147"]:
-                        temp_peptide_type_list.append("lanthi1")
-                        temp_peptide_type_list.append("lanthi2")
-                        temp_peptide_type_list.append("lanthi3")
-                        temp_peptide_type_list.append("lanthi4")
+                        if "lanthi1" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi1")
+                        if "lanthi2" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi2")
+                        if "lanthi3" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi3")
+                        if "lanthi4" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi4")
                     if annot[0] in ["PF14028", "PF04738"]:
-                        temp_peptide_type_list.append("thio")
-                        temp_peptide_type_list.append("lanthi1")
+                        if "thio" in args_peptide_types:
+                            temp_peptide_type_list.append("thio")
+                        if "lanthi1" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi1")
                     if annot[0] in ["BorosinMT"]:
-                        temp_peptide_type_list.append("boro")
+                        if "boro" in args_peptide_types and annot[2] < 1e-15:
+                            temp_peptide_type_list.append("boro")
                     if self.cds_start_list == []:
                         self.cds_start_list.append(CDS.start)
                         self.cds_end_list.append(CDS.end)

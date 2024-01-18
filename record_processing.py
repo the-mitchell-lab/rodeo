@@ -159,7 +159,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
     try:
         for query in queries:
             logger.debug("Fetching %s data" % query)
-            if '.gbk' != query[-4:] and '.gb' != query[-3:] and '.fa' != query[-3:] and '.fasta' != query[-6:]: #accession_id
+            if '.gbk' != query[-4:] and '.gb' != query[-3:] and '.fa' != query[-3:] and '.fasta' != query[-6:] and '.seq' != query[-4:] and '.gbff' != query[-5:]: #accession_id
                 gb_handles = get_gb_handles(query, master_conf, meta=args.meta)
                 nuccore_accession = query
                 if type(gb_handles) is int:
@@ -214,7 +214,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
                         else:
                             record.hypothetical_cds = record.CDSs
                         if args.bait_list:
-                            record.annotate_w_hmmer_nuc(args.bait_list, args.output_dir)
+                            record.annotate_w_hmmer_nuc(args.bait_list, args.output_dir, args.peptide_types)
                         if len(record.cluster_sequence) < 20000000:
                             i = 1
                             if record.CDSs == []:

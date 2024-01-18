@@ -57,7 +57,7 @@ def write_csv_headers(output_dir, meta=False):
 
     svm_headers = svm_headers.split(',')
     if meta:
-        features_headers = ["Accession_id", "Locus", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
+        features_headers = ["Accession_id", "Locus", "Genus/Species/Code", 'Nucleotide_Acc', "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     else:
         features_headers = ["Accession_id", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
