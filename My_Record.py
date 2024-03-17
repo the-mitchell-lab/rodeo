@@ -29,8 +29,8 @@
 # GNU Affero General Public License for more details.
 #==============================================================================
 
-import hmmer_utils
-import csv, subprocess, os
+import hmmer_utils, time
+import csv, subprocess, os, re
 import logging 
 import random
 import string
@@ -39,12 +39,9 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from ripp_modules.VirtualRipp import execute
+import prodigal_processing
 from rodeo_main import VERBOSITY
 from ripp_modules.VirtualRipp import get_radar_score
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-import random, string
 
 logger = logging.getLogger(__name__)
 logger.setLevel(VERBOSITY)
@@ -66,10 +63,10 @@ no_ripp_pfams = []
 
 class Sub_Seq(object):
         """Useful for storing subsequences and their coordinates"""
-        def __init__(self, seq_type, seq, start, end, direction, accession_id=None):
+        def __init__(self, seq_type, seq, start, end, direction, accession_id=None, score=None):
             self.start = start
             self.end = end
-            if direction == 1:
+            if direction == 1 or direction == "+":
                 self.direction = "+"
             else:
                 self.direction = "-"
@@ -80,13 +77,17 @@ class Sub_Seq(object):
             self.type = seq_type ##aa, nt etc.
             self.isRRE = False
             self.pfam_descr_list = []
+            self.score = score
 
 class My_Record(object):
     """ """
     #TODO get genus and species frecom gb file
     def __init__(self, query_accession_id):
         self.query_accession_id = query_accession_id
-        self.query_short = query_accession_id.split(".")[0]
+        self.query_short = query_accession_id.replace(".", "_").replace("\t", "_").replace("/", "_")[:20] #split(".")[0].split("\t")[0]
+        self.random_tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        self.peptide_types = []
+        self.peptide_type_list = []
         self.cluster_accession = ""
         self.cluster_sequence = ""
         self.cluster_length = ""
@@ -96,13 +97,20 @@ class My_Record(object):
         self.CDSs = []
         self.intergenic_seqs = []
         self.intergenic_orfs = []
+        self.hypothetical_seqs = []
+        self.hypothetical_cds = []
+        self.cds_start_list = []
+        self.cds_end_list = []
+        self.bait_iteration = -1
         self.prod_window_start = 0
         self.prod_window_end = 0
+        self.extra_window = dict()
         self.window_start = 0
         self.window_end = 0
         self.start_codons = ['ATG','GTG', 'TTG']
         self.stop_codons = ['TAA','TAG','TGA']
         self.ripps = {}
+        self.rre_present = False
         
     
     def _get_query_index(self):
@@ -125,6 +133,15 @@ class My_Record(object):
             else:
                 i += 1
     
+    def trim_for_prodigal(self, n=50000):
+        """Trim the window down to -n nucleotides of the start of the 
+        query CDS and +n nucleotides of the end of the CDS"""
+        query_index = self.query_index
+        if query_index == -1:
+            return
+        self.prod_window_start = max(0, self.CDSs[query_index].start - n)
+        self.prod_window_end = min(len(self.cluster_sequence), 
+                              self.CDSs[query_index].end + n)
 
     #TODO cutoff or keep if in middle of gene?
     def trim_to_n_nucleotides(self, n):
@@ -137,6 +154,23 @@ class My_Record(object):
         self.window_start = max(0, min(self.CDSs[query_index].start, self.CDSs[query_index].end) - n)
         self.window_end = min(len(self.cluster_sequence), 
                               max(self.CDSs[query_index].start, self.CDSs[query_index].end) + n)
+        self._clean_CDSs()
+
+    def trim_to_n_nucleotides_nuc(self, n, iteration):
+        """Trim the window down to -n nucleotides of the start of the 
+        query CDS and +n nucleotides of the end of the CDS"""
+        self.fetch_n = n
+        try:
+            if self.bait_iteration == -1:
+                self.window_start = 0
+                self.window_end = min(2*n, len(self.cluster_sequence))
+            else:
+                self.window_start = max(0, min(self.cds_start_list[self.bait_iteration]-n, self.cds_end_list[self.bait_iteration]-n))
+                self.window_end = min(len(self.cluster_sequence), 
+                                      max(self.cds_start_list[self.bait_iteration]+n+self.extra_window[self.cds_start_list[self.bait_iteration]],
+                                            self.cds_end_list[self.bait_iteration]+n+self.extra_window[self.cds_start_list[self.bait_iteration]]))
+        except OSError:
+            logger.error("Error finding bait hmm hit")
 
         self._clean_CDSs()
         
@@ -158,30 +192,30 @@ class My_Record(object):
                               self.window_end + fetch_distance)
         self._clean_CDSs()
     
-    def run_radar(self):
+    def run_radar(self, output_dir):
         for CDS in self.CDSs:
-            CDS.radar_score = get_radar_score(CDS.sequence)
-            
-    def get_evalue(self, primary_hmm, cust_hmm):
+            CDS.radar_score = get_radar_score(CDS.sequence, output_dir)
+
+    def get_evalue(self, primary_hmm, cust_hmm, output_dir):
         self.pfam_2_evalue = []
         for prots in self.CDSs:
             try:
-                evalue_temp = hmmer_utils.get_hmmer_info(prots.sequence, primary_hmm, cust_hmm)
+                evalue_temp = hmmer_utils.get_hmmer_info(str(prots.sequence), primary_hmm, cust_hmm, output_dir)
             except:
                 logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
                 evalue_temp = []
             for pfam_acc, desc, e_val, name in evalue_temp:
                 self.pfam_2_evalue.append((prots.accession_id, pfam_acc, e_val, prots.start, prots.end, int(abs(prots.start - prots.end)/3)))
-        
-    def annotate_w_hmmer(self, primary_hmm, cust_hmm, min_length, max_length):
+
+    def annotate_w_hmmer(self, primary_hmm, cust_hmm, output_dir, min_length, max_length):
         self.pfam_2_coords = {}
-        
         for CDS in self.CDSs:
             try:
-                CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(CDS.sequence, primary_hmm, cust_hmm) #Possible input for n and e_cutoff here
+                CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(str(CDS.sequence), primary_hmm, cust_hmm, output_dir) #Possible input for n and e_cutoff here
             except:
                 logger.error("Unable to obtain results from HMMER. Please check provided Pfam path")
                 CDS.pfam_descr_list = []
+                break
             if min_length <= len(CDS.sequence) <= max_length: # len(CDS.pfam_descr_list) == 0 and 
                 if not any(any(fam in annot[0] for fam in no_ripp_pfams) for annot in CDS.pfam_descr_list) and not CDS.isRRE:
                     self.intergenic_orfs.append(CDS)
@@ -192,8 +226,7 @@ class My_Record(object):
                 if annot[0] not in self.pfam_2_coords.keys(): #annot[0] is the PF* key
                     self.pfam_2_coords[annot[0]] = []
                 self.pfam_2_coords[annot[0]].append((CDS.start, CDS.end))
-           
-                
+
     def run_RREFinder(self, sequence, name, working_dir):
     #TODO change to temp file
         try:
@@ -232,13 +265,13 @@ class My_Record(object):
         except:
             ret = None
         return ret
-
+           
     def has_RRE(self, sequence, name, evalue_thresh=1):
         #inactivate RRE finder requirement on local install by uncommenting following line:
         #return False
         
         random_tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        working_dir = "/tmp/RRE_" + random_tag + "_" + name +  "/"
+        working_dir = output_dir + "/tmp/RRE_" + random_tag + "_" + name +  "/"
         pathlib.Path(working_dir).mkdir(parents=True, exist_ok=True)
         results = self.run_RREFinder(sequence, name, working_dir)
         if results:
@@ -248,12 +281,63 @@ class My_Record(object):
         return False
 
     def annotate_w_RREFinder(self):
-        self.rre_present = False
         for CDS in self.CDSs:
             CDS.isRRE = self.has_RRE(CDS.sequence, CDS.accession_id) #Possible input for n and e_cutoff here
             self.rre_present = self.rre_present or CDS.isRRE
             # except:
                 # logger.error("Unable to obtain results from RREFinder. Please check provided Pfam path")
+
+    def annotate_w_hmmer_nuc(self, bait_list, output_dir, args_peptide_types): #min_length, max_length):
+        self.pfam_2_coords = {}
+        temp_extra_window = 0
+        for CDS in self.hypothetical_cds:
+            CDS.pfam_descr_list = hmmer_utils.get_hmmer_info(str(CDS.sequence), "", bait_list, output_dir) #Possible input for n and e_cutoff here
+            #if min_length <= len(CDS.sequence) <= max_length: # len(CDS.pfam_descr_list) == 0 and 
+            #    self.intergenic_orfs.append(CDS)
+            temp_peptide_type_list = []
+            for annot in CDS.pfam_descr_list:
+                if any(annot[0]):
+                    if annot[0] == "PF05402":
+                        CDS.isRRE = True
+                    if annot[0] in ["PF13471", "PF00733"]:
+                        if "lasso" in args_peptide_types:
+                            temp_peptide_type_list.append("lasso")
+                    if annot[0] in ["Graspetide_synthetase"]:
+                        if "grasp" in args_peptide_types and annot[2] < 1e-30:
+                            temp_peptide_type_list.append("grasp")
+                    if annot[0] in ["PF05147"]:
+                        if "lanthi1" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi1")
+                        if "lanthi2" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi2")
+                        if "lanthi3" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi3")
+                        if "lanthi4" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi4")
+                    if annot[0] in ["PF14028", "PF04738"]:
+                        if "thio" in args_peptide_types:
+                            temp_peptide_type_list.append("thio")
+                        if "lanthi1" in args_peptide_types:
+                            temp_peptide_type_list.append("lanthi1")
+                    if annot[0] in ["BorosinMT"]:
+                        if "boro" in args_peptide_types and annot[2] < 1e-15:
+                            temp_peptide_type_list.append("boro")
+                    if self.cds_start_list == []:
+                        self.cds_start_list.append(CDS.start)
+                        self.cds_end_list.append(CDS.end)
+                        self.peptide_type_list.append(list(set(temp_peptide_type_list)))
+                        self.extra_window.update({CDS.start:0})
+                    elif abs(CDS.start - self.cds_start_list[-1]) > (10000 + temp_extra_window) and abs(CDS.start - self.cds_end_list[-1]) > (10000 + temp_extra_window):
+                        self.cds_start_list.append(CDS.start)
+                        self.cds_end_list.append(CDS.end)
+                        self.peptide_type_list.append(list(set(temp_peptide_type_list)))
+                        self.extra_window.update({CDS.start:0})
+                        temp_extra_window = 0
+                    else:
+                        for peptide_type in temp_peptide_type_list:
+                            self.peptide_type_list[-1].append(peptide_type)
+                        self.extra_window[self.cds_start_list[-1]] = CDS.start - self.cds_start_list[-1]
+                        temp_extra_window = CDS.start - self.cds_start_list[-1]
 
     def set_intergenic_seqs(self, min_length, max_length):
         """Sets the sequences between called CDSs"""
@@ -284,8 +368,8 @@ class My_Record(object):
                                                    direction=0) #direction doesnt matter
             self.intergenic_seqs.append(intergenic_sequence)
         return
-
-    def set_intergenic_orfs(self, min_aa_seq_length, max_aa_seq_length, overlap):
+        
+    def set_intergenic_orfs(self, min_aa_seq_length, max_aa_seq_length, overlap, output_dir):
         """Examines intergenic sequences to determine whether or not there are ORFs
         that code for valid aa sequences"""
         identifier = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
@@ -293,9 +377,9 @@ class My_Record(object):
             #Seq(self.cluster_sequence[self.window_start:self.window_end]),
             self.cluster_sequence[self.window_start:self.window_end],
             id=self.cluster_accession,
-            name="prodigal")], f"/tmp/{self.cluster_accession}_{identifier}.fasta", "fasta")
-        os.system(f"prodigal -q -i /tmp/{self.cluster_accession}_{identifier}.fasta -p meta -a /tmp/{self.cluster_accession}_{identifier}_ig.fasta -f sco -o /dev/null")
-        all_orfs = SeqIO.parse(f"/tmp/{self.cluster_accession}_{identifier}_ig.fasta", "fasta")
+            name="prodigal")], f"{output_dir}/tmp/{self.cluster_accession}_{identifier}.fasta", "fasta")
+        os.system(f"prodigal -q -i {output_dir}/tmp/{self.cluster_accession}_{identifier}.fasta -p meta -a {output_dir}/tmp/{self.cluster_accession}_{identifier}_ig.fasta -f sco -o /dev/null")
+        all_orfs = SeqIO.parse(f"{output_dir}/tmp/{self.cluster_accession}_{identifier}_ig.fasta", "fasta")
         for orf_record in all_orfs:
             if not (min_aa_seq_length < len(orf_record.seq) - 1 < max_aa_seq_length):
                 continue
@@ -342,40 +426,135 @@ class My_Record(object):
             if self.intergenic_orfs[i].start == self.intergenic_orfs[i-1].start:
                 del self.intergenic_orfs[i]
             i += 1
+
+
+    def set_hypothetical_seqs(self):
+        """Sets the sequences between called CDSs"""
+        #First need to check if we have trimmed our sequence yet
+        MIN_CUTOFF = 75 #Minimum number of intergenic nucs to be considered for ORF scanning        
+        if self.window_end == 0:
+            self.window_end = len(self.cluster_sequence)
+        start = self.window_start
+        for cds in self.CDSs:
+            end = min(cds.start, cds.end)
+            if end-start >= MIN_CUTOFF:
+                #end == start could happen if the first cds starts at 0
+                nt_seq = self.cluster_sequence[start:end]
+                intergenic_sequence = Sub_Seq(seq_type='IGS',
+                                                   seq=nt_seq, 
+                                                   start=start,
+                                                   end=end,
+                                                   direction=0) #direction doesnt matter
+                self.intergenic_seqs.append(intergenic_sequence)
+            start = max(cds.end, cds.start)
+        nt_seq = self.cluster_sequence[start:]
+        end = self.window_end
+        if end > start and abs(end-start) >= MIN_CUTOFF:
+            intergenic_sequence = Sub_Seq(seq_type='IGS',
+                                                   seq=nt_seq, 
+                                                   start=start,
+                                                   end=end,
+                                                   direction=0) #direction doesnt matter
+            self.hypothetical_seqs.append(intergenic_sequence)
         return
-     
+
+    def set_hypothetical_cds(self, min_aa_seq_length, max_aa_seq_length, overlap, output_dir):
+        """Examines intergenic sequences to determine whether or not there are ORFs
+        that code for valid aa sequences"""
+        nt_seq, nt_seq_rev = self.cluster_sequence, self.cluster_sequence.reverse_complement()
+        prodigal_processing.run_prodigal(record=self, output_dir=output_dir, whole_contig=True)
+        try: 
+            prod_file = open("%s/tmp/%s_%sorfs.tsv" % (output_dir, self.query_short, self.random_tag), 'r')
+        except:
+            time.sleep(2)
+            prod_file = open("%s/tmp/%s_%sorfs.tsv" % (output_dir, self.query_short, self.random_tag), 'r')
+            pass
+        prod_results = prod_file.readlines()
+        prod_file.close()
+        dup_removed_rows = {}
+
+        if len(prod_results) > 5:
+            for line in prod_results[5:]:
+                tmp_line = line.split("\t")
+                if len(tmp_line) != 13:
+                    continue
+                start, end = self.find_orf_coordinates(int(tmp_line[0]), int(tmp_line[1]), tmp_line[2])
+                row = [start, end, tmp_line[2], tmp_line[3]]
+                if float(tmp_line[3]) < -10:
+                    continue
+                if tmp_line[2]+str(end) in dup_removed_rows:
+                    if float(dup_removed_rows[tmp_line[2]+str(end)][3]) < float(row[3]):
+                        dup_removed_rows[tmp_line[2]+str(end)] = row
+                else:
+                    dup_removed_rows[tmp_line[2]+str(end)] = row
+
+        for key in dup_removed_rows:
+            if dup_removed_rows[key][2] == "+":
+                nt_subsequence = nt_seq[dup_removed_rows[key][0]:dup_removed_rows[key][1]]
+                if nt_subsequence[-3:] in ["TAG", "TAA", "TGA"]:
+                    nt_subsequence = nt_subsequence[:-3]
+                aa_sequence = nt_subsequence.translate(11)
+                self.hypothetical_cds.append(Sub_Seq('ORF', aa_sequence, dup_removed_rows[key][0], dup_removed_rows[key][1], direction=1, score=float(dup_removed_rows[key][3])))
+            else:
+                nt_subsequence = nt_seq_rev[len(nt_seq_rev)-dup_removed_rows[key][0]: len(nt_seq_rev)-dup_removed_rows[key][1]]
+                if nt_subsequence[-3:] in ["TAG", "TAA", "TGA"]:
+                    nt_subsequence = nt_subsequence[:-3]
+                aa_sequence = nt_subsequence.translate(11)
+                self.hypothetical_cds.append(Sub_Seq('ORF', aa_sequence, dup_removed_rows[key][0], dup_removed_rows[key][1], direction=-1, score=float(dup_removed_rows[key][3])))
+        
+        self.hypothetical_cds.sort(key=lambda seq: abs(seq.end-seq.start), reverse=True)
+        time.sleep(0.1)               
+        self.hypothetical_cds.sort(key=lambda seq: seq.end)
+        #Get rid of duplicates. Duplicate ORFs will appear when the overlap is
+        #set such that two intergenic sequences are expanded to a point where 
+        #they share nucleotides with eachother
+        i = 1
+        prev_len = len(self.hypothetical_cds)
+        while i < len(self.hypothetical_cds):
+            #print(self.intergenic_orfs[i].sequence)
+            j = 0
+            #print(i, j, len(self.hypothetical_cds))
+            while i+j < len(self.hypothetical_cds):
+                if self.hypothetical_cds[i+j].end == self.hypothetical_cds[i-1].end:
+                    #print (self.hypothetical_cds[i+j].__dict__, self.hypothetical_cds[i-1].__dict__, "deleted")
+                    del self.hypothetical_cds[i+j]
+                    j += 1
+                else:
+                    break
+            i += 1+j
+            if i >= len(self.hypothetical_cds) and len(self.hypothetical_cds) != prev_len:
+                i = 1
+                prev_len = len(self.hypothetical_cds)
+        return
+    
     def filter_RREs_and_HMMs(self, hmm_list):
         ret_list = []
         for cds in self.intergenic_orfs:
             if not any(any(fam in annot[0] for fam in hmm_list) for annot in cds.pfam_descr_list) and not cds.isRRE:
                 ret_list.append(cds)
         self.intergenic_orfs = ret_list
-    
-    def set_ripps(self, module, master_conf):
+
+    def set_ripps(self, module, master_conf, output_dir):
         logger.debug("Setting %s ripps for %s" % (module.peptide_type, self.query_accession_id))
         self.ripps[module.peptide_type] = []
         for orf in self.intergenic_orfs:
             if module.peptide_type == "grasp":
-                orf.radar_score = get_radar_score(orf.sequence)
+                orf.radar_score = get_radar_score(orf.sequence, output_dir)
             if master_conf[module.peptide_type]['variables']['precursor_min'] <= len(orf.sequence) <=  master_conf[module.peptide_type]['variables']['precursor_max'] \
                     or ("M" in orf.sequence[-master_conf[module.peptide_type]['variables']['precursor_max']:]) \
                     or (module.peptide_type == "grasp" and len(orf.sequence) < 400)\
-                    or (module.peptide_type == "grasp" and orf.radar_score > 0 and len(orf.sequence) < 400):
+                    or (module.peptide_type == "grasp" and orf.radar_score > 0 and len(orf.sequence) > 400):
                 if module.peptide_type == "sacti":
-                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.rre_present)
-                
-                elif module.peptide_type == "boro" or "grasp":
-                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, self.pfam_2_evalue) 
-                
+                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, output_dir, self.pfam_2_evalue, self.rre_present)
                 else:
-                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords)
+                    ripp = module.Ripp(orf.start, orf.end, str(orf.sequence), orf.upstream_sequence, self.pfam_2_coords, output_dir, self.pfam_2_evalue)
                 if module.peptide_type == "grasp":
                     ripp.radar_score = orf.radar_score
                 ripp.radar_score  = orf.radar_score
                 if ripp.valid_split or master_conf[module.peptide_type]['variables']['exhaustive']:
                     self.ripps[module.peptide_type].append(ripp)
                 
-    def score_ripps(self, module, pfam_hmm, cust_hmm):
+    def score_ripps(self, module, pfam_hmm, cust_hmm, output_dir):
         logger.debug("Scoring %s ripps for %s" % (module.peptide_type, self.query_accession_id))
         for ripp in self.ripps[module.peptide_type]:
             ripp.set_score(pfam_hmm, cust_hmm)
@@ -419,37 +598,57 @@ class My_Record(object):
         print("="*50)
 
 
-    
-def update_score_w_svm(output_dir, records):
-        """Order should be preserved. Goes through file and updates scores"""
-        for peptide_type in records[0].ripps.keys():
-            score_reader = csv.reader(open(output_dir + '/' + peptide_type + '/' +\
-                                           peptide_type + '_features.csv')) 
-            header = next(score_reader)
-            score_col = 6
-            try:
-                score_col = header.index("Total Score")
-            except ValueError:
-                logger.error("Temporary CSV format invalid. No column named \"Total Score\". Score results are most likely invalid.")
-            
-            score_reader_done = False
-            total_ripps = 0
-            for record in records:
-                total_ripps += len(record.ripps[peptide_type])
-                for ripp in record.ripps[peptide_type]:
-                    if not score_reader_done:
-                        try:
-                            line = next(score_reader)
-                        except KeyboardInterrupt:
-                            raise KeyboardInterrupt
-                        except Exception as e:
-                            import traceback as tb
-                            tb.print_exc()
-                            print(e)
-                            score_reader_done = True
-                            logger.warning("Mismatch in RiPP count and length of CSV. Score results are most likely invalid")
-                            print(total_ripps)
-                            return
-                    ripp.score = int(line[score_col])
-                    ripp.confidence = float(ripp.score)/(ripp.CUTOFF)
+    def find_prod_coordinates(self, beg, end):
+        if(beg<end):
+            return(beg-self.window_start+1, end-self.window_start)
+        else:
+            return(beg-self.window_start+2, end-self.window_start-1)
 
+    def find_orf_coordinates(self, beg, end, direction):
+        if direction == "+":
+            return(beg-1, end)
+        else:
+            return(end, beg-1)
+
+        
+    
+def update_score_w_svm(output_dir, peptide_type, records):
+        """Order should be preserved. Goes through file and updates scores"""
+        score_reader = csv.reader(open(output_dir + '/' + peptide_type + '/' +\
+                                       peptide_type + '_features.csv')) 
+        header = next(score_reader)
+        score_col = 6
+        try:
+            score_col = header.index("Total Score")
+        except ValueError:
+            logger.error("Temporary CSV format invalid. No column named \"Total Score\". Score results are most likely invalid.")
+        
+        score_reader_done = False
+        total_ripps = 0
+        for record in records:
+            if peptide_type not in record.peptide_types:
+                continue
+            total_ripps += len(record.ripps[peptide_type])
+            for ripp in record.ripps[peptide_type]:
+                if not score_reader_done:
+                    try:
+                        line = next(score_reader)
+                    except KeyboardInterrupt:
+                        raise KeyboardInterrupt
+                    except Exception as e:
+                        import traceback as tb
+                        tb.print_exc()
+                        print(e)
+                        score_reader_done = True
+                        logger.warning("Mismatch in RiPP count and length of CSV. Score results are most likely invalid")
+                        print(total_ripps)
+                        return
+                ripp.score = int(line[score_col])
+                ripp.confidence = float(ripp.score)/(ripp.CUTOFF)
+
+        try:
+            os.remove(output_dir + "/" + peptide_type + "/fitting_results.csv")
+            os.remove(output_dir + "/" + peptide_type + "/fitting_set.csv")
+            os.remove(output_dir + "/" + peptide_type + "/temp_features.csv")
+        except:
+            pass

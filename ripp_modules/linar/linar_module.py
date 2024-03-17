@@ -48,13 +48,16 @@ peptide_type = "linar"
 CUTOFF = 12
 index = 0
 
-def write_csv_headers(output_dir):
+def write_csv_headers(output_dir, meta=False):
     dir_prefix = output_dir + '/linar/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
     svm_headers = 'PK,Classification,Contains ABC Transporter,Contains n-methyl transferase,Contains flavin decarboxylase,Has CXXC motif and flavin decarboxylase in BGC,Has GST motif and flavin decarboxylase,Gene cluster and precursor in same direction,Charge of leader <1 at pH 7,Core contains >2 Cysteine,Leader contains 0 Cysteine,Core % Aliphatic and Dhb residues,Core begins with XTP motif,Leader contains GXG motif,Leader contains LXD motif,Leader contains FAN motif,Distance from LinG homolog,Length of precursor,Leader Percent A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,% Aromatics,% Negative,% Positive,% Charged,% Aliphatic,% Hydroxyl,Core percent A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,% Aromatics,% Negative,% Positive,% Charged,% Aliphatic,% Hydroxyl,Relative charge of core,Relative charge of leader,Relative charge of precursor,Absolute charge of core,Absolute charge of Leader,Absolute charge of precursor' #,Motif 1,2,3,4,5,6,7,8,Number of motifs hit,Motif score 1,2,3,4,5,6,7,8,Total motif score,No motifs hit'
     svm_headers = svm_headers.split(',')
-    features_headers = ["Accession_id", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
+    if meta:
+        features_headers = ["Accession_id", "Locus", "Genus/Species/Code", 'Nucleotide_Acc', "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
+    else:
+        features_headers = ["Accession_id", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
     svm_csv_file = open("{}fitting_set.csv".format(dir_prefix), 'w')
     features_writer = csv.writer(features_csv_file)
@@ -69,12 +72,14 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+				 output_dir,
                  pfam_2_evalue):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+				                     output_dir,
                                      pfam_2_evalue)
         self.peptide_type = 'linar'
         self.set_split()
@@ -212,7 +217,7 @@ class Ripp(VirtualRipp):
         #Positive hit for LinA.hmm file at e-value < 0.001
         # switch the # on the two lines below if your computer username has a space in it.     # RAL
         #precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format("./ripp_modules/linar"), "", n=1)
-        precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format(FILE_DIR), "", n=1)
+        precursor_pfam = hmmer_utils.get_hmmer_info(self.sequence, "{}/hmms/LinA.hmm".format(FILE_DIR), "", self.output_dir, n=1)
         if precursor_pfam and len(self.sequence) < 120:
             score += 10
 

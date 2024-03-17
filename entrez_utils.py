@@ -59,7 +59,7 @@ logger.addHandler(ch)
 Entrez.email ='ghudson@lbl.gov'
 
 @timeout(300)
-def get_gb_handles(prot_accession_id, master_conf):
+def get_gb_handles(prot_accession_id, master_conf, meta=False):
     """Returns a list of .gb/.gbk filestreams from protein db accession.
     
     ERROR CODES:
@@ -71,35 +71,46 @@ def get_gb_handles(prot_accession_id, master_conf):
     logger.info("Fetching %s data from GenBank." % prot_accession_id)
     for i in range(tries):
         try:
-            record = Entrez.read(Entrez.esearch("protein",term=prot_accession_id))
+            if meta:
+                record = Entrez.read(Entrez.esearch("nuccore", term=prot_accession_id))
+            else:
+                record = Entrez.read(Entrez.esearch("protein",term=prot_accession_id))
             total_count = record["Count"]
             if int(total_count) >= 1:
                 IdList = record["IdList"]
                 time.sleep(0.5)
-                link_records = Entrez.elink(dbfrom="protein",db="nuccore",id=IdList).read()
+                if meta:
+                    link_records = Entrez.elink(dbfrom="nuccore", db="nuccore",id=IdList).read() # check if this step is strictly necessary when querying Genbank in meta mode
+                else:
+                    link_records = Entrez.elink(dbfrom="protein", db="nuccore",id=IdList).read()
                 xml = ET.fromstring(link_records)
                 tree = ET.ElementTree(xml)
                 root = tree.getroot()
                 nuccore_ids=[]
                 if root.find('./LinkSet/LinkSetDb/Link/Id') is None:
-                     return -2
+                    return -2
                 for record in root.findall('./LinkSet/LinkSetDb/Link/Id'):
-                     nuccore_ids.append(record.text)
-                    
+                    nuccore_ids.append(record.text)
+
                 search_handle     = Entrez.epost(db="nuccore", id=",".join(nuccore_ids))
                 search_results    = Entrez.read(search_handle)
                 webenv,query_key  = search_results["WebEnv"], search_results["QueryKey"] 
-                
+
                 batchSize = 1
-                
+
                 handles = []
                 for start in range(len(nuccore_ids)):
                     if start == 1 and not master_conf['general']['variables']['evaluate_all']:
                               break
                     time.sleep(0.5)
-                    orig_handle = Entrez.efetch(db="nuccore", dbfrom="protein", rettype="gbwithparts", 
+                    if meta:
+                        orig_handle = Entrez.efetch(db="nuccore", dbfrom="nuccore", rettype="gbwithparts", 
                                                    retmode="text", retstart=start, retmax=batchSize, 
                                                    webenv=webenv, query_key=query_key)
+                    else:
+                        orig_handle = Entrez.efetch(db="nuccore", dbfrom="protein", rettype="gbwithparts", 
+                                                    retmode="text", retstart=start, retmax=batchSize, 
+                                                    webenv=webenv, query_key=query_key)
                     handles.append(orig_handle)
             else:
                 prot_record = list(SeqIO.parse(Entrez.efetch("protein",id=prot_accession_id, rettype="gb", retmode="text"), "genbank"))[0]
@@ -121,7 +132,7 @@ def get_gb_handles(prot_accession_id, master_conf):
 
 #gb_handle should only be a handle to ONE query 
 @timeout(300)
-def get_record_from_gb_handle(gb_handle, nuccore_accession_id):
+def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, meta=False, fasta=False, self_annotate=False, megarun=False):
     """Takes an input gb_filestream and query accession_id.
     Returns a record containing basic information about the query.
     i.e. CDSs, genus/species, sequence.
@@ -132,23 +143,34 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id):
     logger.info("Parsing %s handle." % nuccore_accession_id)
     try:
         try:
-            gb_record = SeqIO.parse(gb_handle, "genbank")
+            if fasta:
+                gb_record = SeqIO.parse(gb_handle, "fasta")  # Add code to extract FASTA file from NCBI flat files
+            else:
+                gb_record = SeqIO.parse(gb_handle, "genbank")
         except KeyboardInterrupt:
             raise KeyboardInterrupt
         except Exception as e:
             logger.error("Error parsing GenBank handle for %s" % (nuccore_accession_id))
             logger.error(e)
+        list_of_records = []
         any_record = False
         accession_found = False
         for record in gb_record: #Should only be one record in gb_record
+            if megarun and len(record.seq) < 1000:
+                continue
 #            if not first_record:
 #                logger.info("Multiple records in gb_record for %s." % (nuccore_accession_id))
             any_record = True
             ret_record = My_Record(nuccore_accession_id)
             ret_record.cluster_accession = record.id
             ret_record.cluster_sequence = record.seq
-            ret_record.cluster_genus_species = record.annotations['organism'] #TODO verify
+            try:
+                ret_record.cluster_genus_species = record.annotations['organism'] #TODO verify
+            except: 
+                ret_record.cluster_genus_species = "N/A"
             for feature in record.features:
+                if self_annotate:
+                    break
                 if feature.type == 'CDS':
                     inferred = False
                     start = int(feature.location.start)
@@ -195,10 +217,14 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id):
                     else:
                         cds.inferred = False
                     ret_record.CDSs.append(cds)
+            if meta:
+                list_of_records.append(ret_record)
+                continue
             if accession_found and any_record and len(ret_record.cluster_sequence) > 0 and len(ret_record.CDSs) > 0:
                 logger.debug("Record made for %s" % (ret_record.cluster_accession))
-                
                 return ret_record
+        if meta:
+            return list_of_records
         if not accession_found:
             logger.error("Accession %s not found." % (nuccore_accession_id))
             return -1

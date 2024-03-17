@@ -58,13 +58,16 @@ index = 0
 
 #sets up the csv file with correct headers
 
-def write_csv_headers(output_dir):
+def write_csv_headers(output_dir, meta=False):
     dir_prefix = output_dir + '/boro/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
     svm_headers = "Precursor Index,Classification,Precursor has a methyltransferase domain,Precursor has a BBD domain,Precursor's Length,Best Boro MT length,Precursor is best Boro MT,Best BBD length,Precursor is best BBD,MT & BBD fused,MT & GGDEF fused,Nearby PF00590 domain,Nearby BorosinMT hmm hit,Nearby NMT_1 (DCLFAD) hmm hit,Nearby NMT_2 (YGHP) hmm hit,Nearby PF03819 (MazG) or PF12643 (MazG-like) domain,Best BorosinMT score [-log(e-value)],BorosinMT score >= 40,BorosinMT score >= 30,BorosinMT score <= 25,BorosinMT score <=15,Best BorosinMT hit's PF00590 (TP methyltransferase) score [-log(e-value)],BorosinMT hit's PF00590 score >= 35,BorosinMT hit's PF00590 score >= 25,Best BorosinMT hit's PF03819 (MazG) score [-log(e-value)],BorosinMT hit's PF03819 (MazG) score >= 35,BorosinMT hit's PF03819 (MazG) score >= 25,BorosinMT hit's PF03819 (MazG) score >= 15,BorosinMT hit's PF03819 (MazG) score >= 5,Nearby PF07746 (LigA),Nearby BBD hmm hit,PF07746 (LigA) score [-log(e-value)],BBD_A score [-log(e-value)],BBD_B score [-log(e-value)],BBD_C score [-log(e-value)],BBD_old score [-log(e-value)],Precursor within 100 nucleotides of a MT,Precursor within 200 nucleotides of a MT,Precursor within 1000 nucleotides of a MT,Precursor is farther than 3000 nucleotides from a MT,Precursor & MT on same strand,Both BBD and PF00590 domains nearby,Nearby GGDEF,Nearby acetyltransferase,Nearby peptidase,Nearby legionellales hmm hit,Nearby type VI/VII/VIII hmm hit,precursor has a PF00590 (TP methyltransferase) domain,precursors hits the BorosinMT hmm,precursor hits the NMT_1 hmm,precursor hits the NMT_2 hmm,precursor has a LigA-like domain (PF07746),precursor hits BBD_A hmm,precursor hits BBD_B hmm,precursor hits BBD_C hmm,precursor hits BBD_old hmm,precursor hits a legionellales hmm,precursor hits type VI/VII/VIII hmm,precursor hits MT & BBD hmm,precursor hits MT hmm and nearby type 6-8 hmm hit,precursor hits a legionellales & BBD hmm,precursor hits type VI/VII/VIII & BBD hmm,precursor hits a legionellales & MT hmm,precursor hits type VI/VII/VIII & MT hmm,precursor is > 900 AA & hits a BBD hmm,precursor is > 700 AA & hits a BBD hmm,precursor is < 400 AA & hits a BBD hmm,precursor is < 250 AA & hits a BBD hmm,precursor is < 100 AA and hits a BBD hmm,precursor is < 400 AA and hits the type VI/VII/VIII hmm,precursor is < 100 AA and hits a legionellales hmm,FIMO motif 1 present,motif 2,motif 3,motif 4,motif 5,motif 6,motif 7,motif 8,motif 9,motif 10,motif 11,motif 12,motif 13,motif 14,motif 15,motif 16,motif 17,motif 18,motif 19,motif 20,motif 21,motif 22,motif 23,motif 24,motif 25,motif 26,motif 27,Number of motifs present,Occurances of motif 1,motif 2,motif 3,motif 4,motif 5,motif 6,motif 7,motif 8,motif 9,motif 10,motif 11,motif 12,motif 13,motif 14,motif 15,motif 16,motif 17,motif 18,motif 19,motif 20,motif 21,motif 22,motif 23,motif 24,motif 25,motif 26,motif 27,No Motifs,MT distance,core charge,precursor charge,abs(core charge),abs(precursor charge),CORE COUNT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,aromatics,neg,pos,charged,aliphatic,hydroxyl,isoelectric point,PRECURSOR count A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,PERCENT A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,aromatics,neg,pos,charged,aliphatic,hydroxyl,isoelectric point"
     svm_headers = svm_headers.split(',')
-    features_headers = ['Accession_id', 'Genus/Species', 'Sequence', 'Region1', 'Region2', 'Region3', 'Start', 'End', 'Best Borosin MT accession', 'Best BBD accession', 'Multiple Borosin MT', 'Multiple BBDs', 'Total Score',"Valid Precursor",] + svm_headers
+    if meta:
+        features_headers = ['Accession_id', 'Locus', 'Genus/Species', 'Nucleotide_Acc', 'Sequence', 'Region1', 'Region2', 'Region3', 'Start', 'End', 'Best Borosin MT accession', 'Best BBD accession', 'Multiple Borosin MT', 'Multiple BBDs', 'Total Score',"Valid Precursor",] + svm_headers
+    else:
+        features_headers = ['Accession_id', 'Genus/Species', 'Sequence', 'Region1', 'Region2', 'Region3', 'Start', 'End', 'Best Borosin MT accession', 'Best BBD accession', 'Multiple Borosin MT', 'Multiple BBDs', 'Total Score',"Valid Precursor",] + svm_headers
 #TODO close all these write headers at the end of the document
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
     svm_csv_file = open("{}fitting_set.csv".format(dir_prefix), 'w')
@@ -82,6 +85,7 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+                 output_dir,
                  pfam_2_evalue):
         
         super(Ripp, self).__init__(start, 
@@ -89,6 +93,7 @@ class Ripp(VirtualRipp):
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+                                     output_dir,
                                      pfam_2_evalue)
                                      
         self.peptide_type = 'boro'
@@ -205,7 +210,7 @@ class Ripp(VirtualRipp):
 
 # Stores precursor PFAM & HMM hits 
 
-        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_dir, cust_hmm)      
+        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_dir, cust_hmm, self.output_dir)      
         prec_pfams = []
         for pfam_dot, _, pf_evalue, _, in precursor_hmm_info:
             prec_pfams.append(pfam_dot.split('.')[0])

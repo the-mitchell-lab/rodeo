@@ -48,13 +48,16 @@ peptide_type = "sacti"
 CUTOFF = 20
 index = 0
 
-def write_csv_headers(output_dir):
+def write_csv_headers(output_dir, meta=False):
     dir_prefix = output_dir + '/sacti/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
     svm_headers = 'Precursor Index,Classification,Precursor peptide mass,Leader peptide mass,Core peptide mass,Distance,Within 500 nt?,Within 150 nt?,Further than 1000 nt?,Ratio of N-term to 1st C 0.25<x<0.60,Ratio of N-term to 1st C <0.25 or >0.60,Three or more C,Two or more C,Less than 2 C,CXXXXXC,CXXXC,CXXC,CXC,CC,CCC,WxxP,Has RRE,Peptide matches SboA hmm,Peptide matches SkfA hmm,Peptide matches SCIFF hmm,Cluster has PF13186 (SPASM),Cluster has PF13353 (Fe4_12),Has peptidase PF05193,Has S8 peptidase PF00082,Has S41 peptidase PF03572,Has M16 peptidase PF00675,Has ABC trans PF00005,Has ABC mem PF00664,Has response reg PF00072,Has maj facilit PF07690,Has ATPase PF13304,Has rSAM PF04055,C-terminal portion is < 0.35 or > 0.65,C-terminal portion is > 0.35 and < 0.65,SS profile sum > 1,Leader length (aa),Precursor length (aa),Core length (aa),Core/precursor ratio,Core/leader ratio,Ratio of N-terminus to first Cys,number of CxnC,avg dist between CxnC,Ratio from last CxnC to C-terminus,SS profile 1 aa,SS profile 2 aa,SS profile 3 aa,SS profile 4 aa,SS profile 5 aa,SS profile 6 aa,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,peptidase PF05193,CAAX immunity PF02517,S8 peptidase PF00082,S41 peptidase PF03572,M16 peptidase PF00675,M50 peptidase PF02163,S9 peptidase PF00326,ABC trans PF00005,ABC mem PF00664,response reg PF00072,maj facilit PF07690,HATPase PF02518,ATPase PF13304,Fer4_12 PF13353,rSAM PF04055,Length of rSAM maturase'
     svm_headers = svm_headers.split(',')
-    features_headers = ["Accession_id", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
+    if meta:
+        features_headers = ["Accession_id", "Locus", "Genus/Species/Code", 'Nucleotide_Acc', "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
+    else:
+        features_headers = ["Accession_id", "Genus/Species/Code", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
     svm_csv_file = open("{}fitting_set.csv".format(dir_prefix), 'w')
     features_writer = csv.writer(features_csv_file)
@@ -70,12 +73,16 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+				 output_dir,
+                 pfam_2_evalue,
                  has_rre):
         super(Ripp, self).__init__(start, 
                                      end, 
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+				                     output_dir,
+                                     pfam_2_evalue,
                                      has_rre)
         self.peptide_type = 'sacti'
         self.set_split()
@@ -208,7 +215,7 @@ class Ripp(VirtualRipp):
 
 
             
-        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_hmm, cust_hmm)
+        precursor_hmm_info = hmmer_utils.get_hmmer_info(self.sequence, pfam_hmm, cust_hmm, self.output_dir)
         pfams = []
         for pfam_dot, _, _, _, in precursor_hmm_info:
             pfams.append(pfam_dot.split('.')[0])

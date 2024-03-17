@@ -84,7 +84,7 @@ def execute(commands, input=None):
         raise e
 
 
-def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_of_rows, feature_count=5):
+def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_of_rows, feature_count=5, meta=False, locus=-1, cluster_accession=""):
     dir_prefix = output_dir + '/{}/'.format(peptide_type)
     global index
     features_csv_file = open(dir_prefix + "temp_features.csv", 'a')
@@ -96,11 +96,14 @@ def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_
     if peptide_type == "grasp":
         feature_count =9
     for row in list_of_rows:
-        features_writer.writerow([accession_id, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
+        if meta:
+            features_writer.writerow([accession_id, locus, genus_species, cluster_accession] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
+        else:
+            features_writer.writerow([accession_id, genus_species] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
         svm_writer.writerow([index, ''] + row[feature_count:]) #Don't include accession_id, leader, core sequence, start, end, or score
         index += 1
         
-def run_svm(output_dir, peptide_type, cutoff, feature_count=5):
+def run_svm(output_dir, meta, peptide_type, cutoff, feature_count=5):
     runner = svmc.SVMRunner(peptide_type, output_dir)
     runner.run_svm()
     svm_output_reader = csv.reader(open(os.path.join(output_dir, "{}/fitting_results.csv".format(peptide_type))))
@@ -112,6 +115,8 @@ def run_svm(output_dir, peptide_type, cutoff, feature_count=5):
         feature_count=11
     if peptide_type == "grasp":
         feature_count =9
+    if meta:
+        feature_count +=2
     for row, svm_output_line in zip(features_reader, svm_output_reader):
         svm_output = svm_output_line[1]
         row[feature_count+4] = svm_output
@@ -167,19 +172,19 @@ def parse_radar_output(radar_output):
         i += 1
     return score
                     
-def get_radar_score(sequence):
+def get_radar_score(sequence, output_dir):
     #TODO change to temp file
         pid = str(os.getpid())
         try:
-            with open("/tmp/" + pid + "RADAR.fasta", 'w+') as tfile:
+            with open(output_dir + "/tmp/" + pid + "RADAR.fasta", 'w+') as tfile:
                 tfile.write(">query\n%s" % (sequence))
-                command = ["radar.py -a /tmp/" + pid + "RADAR.fasta"]
+                command = ["radar.py -a " + output_dir + "/tmp/" + pid + "RADAR.fasta"]
             try:
                 out, err, retcode = execute(command)
             except OSError:
                 logger.error("Could not run RADAR")
                 try:
-                    os.remove(pid+"RADAR.fasta")
+                    os.remove(output_dir + "/tmp/" + pid + "RADAR.fasta")
                 except OSError:
                     pass
                 return 0
@@ -189,12 +194,12 @@ def get_radar_score(sequence):
                 logger.error(sequence)
                 return 0
             try:
-                os.remove("/tmp/" + pid + "RADAR.fasta")
+                os.remove(output_dir + "/tmp/" + pid + "RADAR.fasta")
             except OSError:
                     pass
         except KeyboardInterrupt:
             try:
-                os.remove("/tmp/" + pid + "RADAR.fasta")
+                os.remove(output_dir + "/tmp/" + pid + "RADAR.fasta")
                 return
             except OSError:
                 pass
@@ -217,6 +222,7 @@ class VirtualRipp(object):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+                 output_dir,
                  pfam_2_evalue=[],
                  has_rre=False):
         self.start = start
@@ -229,6 +235,7 @@ class VirtualRipp(object):
         self.peptide_type = 'virtual' 
         self.score  = 0
         self.pfam_2_coords = pfam_2_coords
+        self.output_dir = output_dir
         self.pfam_2_evalue = pfam_2_evalue
         
         if start < end:
@@ -241,7 +248,7 @@ class VirtualRipp(object):
 #        self.set_monoisotopic_mass()
 #        self.csv_columns = [self.leader, self.core, self.start, self.end]
 
-    def run_svm(self, output_dir):
+    def run_svm(self):
         try:
             rmod = importlib.import_module(self.peptide_type)
             from rmod.svm import svm_classify as svm
@@ -250,10 +257,10 @@ class VirtualRipp(object):
             logger.error("{} not a valid peptide type".format(self.peptide_type))
             
         svm.run_svm()
-        svm_output_reader = csv.reader(open(os.path.join(output_dir, self.peptide_type, "/fitting_results.csv")))
-        final_output_writer = csv.writer(open(output_dir + "/" + self.peptide_type + '/'\
+        svm_output_reader = csv.reader(open(os.path.join(self.output_dir, self.peptide_type, "/fitting_results.csv")))
+        final_output_writer = csv.writer(open(self.output_dir + "/" + self.peptide_type + '/'\
                                               + self.peptide_type + "_features.csv", 'w'))
-        features_reader = csv.reader(open(output_dir + "/" + self.peptide_type + '/'\
+        features_reader = csv.reader(open(self.output_dir + "/" + self.peptide_type + '/'\
                                               + self.peptide_type + "/temp_features.csv"))
         header_row = features_reader.next() #skip header
         final_output_writer.writerow(header_row)
@@ -278,12 +285,12 @@ class VirtualRipp(object):
             query_motif_file = os.path.join(FILE_DIR, self.peptide_type, self.peptide_type + "_fimo.txt")
         pid = str(os.getpid())
         try:
-            with open("/tmp/" + pid + "FIMO.seq", 'w+') as tfile:
+            with open(self.output_dir + "/tmp/" + pid + "FIMO.seq", 'w+') as tfile:
                 tfile.write(">query\n%s" % (self.sequence))
             if WEB_TOOL:
-                command = ["/home/ubuntu/meme/bin/fimo --text --verbosity 1 " + query_motif_file + ' ' + "/tmp/" + pid + "FIMO.seq"]
+                command = ["/home/ubuntu/meme/bin/fimo --text --verbosity 1 " + query_motif_file + ' ' + self.output_dir + "/tmp/" + pid + "FIMO.seq"]
             else:
-                command = ["fimo --text --verbosity 1 " + query_motif_file + ' ' + "/tmp/" + pid + "FIMO.seq"]
+                command = ["fimo --text --verbosity 1 " + query_motif_file + ' ' + self.output_dir +  "/tmp/" + pid + "FIMO.seq"]
             try:
                 out, err, retcode = execute(command)
             except OSError:
@@ -298,12 +305,12 @@ class VirtualRipp(object):
                                 err, query_motif_file)
                 return ""
             try:
-                os.remove("/tmp/" + pid + "FIMO.seq")
+                os.remove(self.output_dir + "/tmp/" + pid + "FIMO.seq")
             except OSError:
                     pass
         except KeyboardInterrupt:
             try:
-                os.remove("/tmp/" + pid + "FIMO.seq")
+                os.remove(self.output_dir + "/tmp/" + pid + "FIMO.seq")
                 return
             except OSError:
                 pass

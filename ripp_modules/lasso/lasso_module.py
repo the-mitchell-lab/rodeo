@@ -47,13 +47,16 @@ CUTOFF = 13
 index = 0
 
 
-def write_csv_headers(output_dir):
+def write_csv_headers(output_dir, meta=False):
     dir_prefix = output_dir + '/lasso/'
     if not os.path.exists(dir_prefix):
         os.makedirs(dir_prefix)
     svm_headers = 'Precursor Index,classification,Calcd. Lasso Mass (Da), Distance,Within 500 nt?,Within 150 nt?,Further than 1000 nt?,Core has 2 or 4 Cys?,Leader longer than core?,Lasso ring length (-1 if not plausible),Leader has GxxxxxT motif?,Core starts with G?,Ratio leader/core < 2 and > 0.5,Core starts with Cys and even number of Cys?,No Gly in core?,Core has at least 1 aromatic aa?,Core has at least 2 aromatic aa?,Core has odd number of Cys?,Leader has Trp?,Leader has Lys?,Leader has Cys?,Cluster has PF00733?,Cluster has PF05402?,Cluster has PF13471?,Leader has LxxxxxT motif?,Core has adjacent identical aas (doubles)?,Core length (aa),Leader length (aa),Precursor length (aa),Leader/core ratio,Number of Gly in first 9 aa of core?,Number of Pro in first 9 aa of core?,CORE starts with A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Estimated core charge,Estimated leader charge,Estimated precursor charge,Absolute value of core charge,Absolute value of leader charge,Absolute value of precursor charge,LEADER A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,CORE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Aromatics (last 10aa),Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,FIRST CORE RESIDUE A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V, PRECURSOR A,R,D,N,C,Q,E,G,H,I,L,K,M,F,P,S,T,W,Y,V,Aromatics,Neg charged,Pos charged,Charged,Aliphatic,Hydroxyl,Motif1?,Motif2?,Motif3?,Motif4?,Motif5?,Motif6?,Motif7?,Motif8?,Motif9?,Motif10?,Motif11?,Motif12?,Motif13?,Motif14?,Motif15?,Motif16?,Total motifs hit,"Score Motif1","Score Motif2","Score Motif3","Score Motif4","Score Motif5","Score Motif6","Score Motif7","Score Motif8","Score Motif9","Score Motif10","Score Motif11","Score Motif12","Score Motif13","Score Motif14","Score Motif15","Score Motif16",Sum of MEME scores,No Motifs?,Alternate Start Codon?'
     svm_headers = svm_headers.split(',')
-    features_headers = ['Accession_id', 'Genus/Species', 'Leader', 'Core', 'Start', 'End' , "Total Score", "Valid Precursor"] + svm_headers
+    if meta:
+        features_headers = ["Accession_id", "Locus", "Genus/Species", "Nucleotide_Acc", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
+    else:
+        features_headers = ["Accession_id", "Genus/Species", "Leader", "Core", "Start", "End", "Total Score", "Valid Precursor" ] + svm_headers
     features_csv_file = open(dir_prefix + "temp_features.csv", 'w')
     svm_csv_file = open("{}fitting_set.csv".format(dir_prefix), 'w')
     features_writer = csv.writer(features_csv_file)
@@ -69,12 +72,14 @@ class Ripp(VirtualRipp):
                  sequence,
                  upstream_sequence,
                  pfam_2_coords,
+				 output_dir,
                  pfam_2_evalue):
         super(Ripp, self).__init__(start,
                                      end,
                                      sequence,
                                      upstream_sequence,
                                      pfam_2_coords,
+				                     output_dir,
                                      pfam_2_evalue)
         self.peptide_type = 'lasso'
         self.set_split()
