@@ -204,7 +204,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
                     if not master_conf['general']['variables']['evaluate_all']:
                         break
                     else:
-                        continue
+                        break
                 logger.debug("Putting %s on the queue" % (record.query_accession_id))
                 if args.meta:
                     for record in records:
