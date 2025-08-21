@@ -242,8 +242,8 @@ def __main__():
         logger.critical("Invalid argument for -ft/-fetch_type")
         return None
     if args.megarun:
-        args.peptide_types = ['boro', 'grasp', 'lanthi1', 'lanthi2', 'lanthi3', 'lanthi4', 'lasso', 'linar', 'sacti', 'thio']
-    if any(pt in ['sacti', 'lanthi', 'linar', 'grasp'] for pt in args.peptide_types):
+        args.peptide_types = ['boro', 'cyclo', 'grasp', 'lanthi1', 'lanthi2', 'lanthi3', 'lanthi4', 'lasso', 'linar', 'sacti', 'thio']
+    if any(pt in ['cyclo', 'sacti', 'lanthi', 'linar', 'grasp'] for pt in args.peptide_types):
         if not any ("tigr" in hmm_name.lower() for hmm_name in args.custom_hmm):
             logger.warn("Lanthi, sacti, and/or linar heuristics require TIGRFAM hmm. Make sure its location is specified with the -hmm or --custom_hmm flag.")
     if "linar" in args.peptide_types and WEB_TOOL:
@@ -256,6 +256,8 @@ def __main__():
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/boro/hmms/boro.hmm"))
     if "thio" in args.peptide_types:
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/thio/hmms/thio.hmm"))
+    if "cyclo" in args.peptide_types:
+        args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/cyclo/hmms/cyclo.hmm"))
 #==============================================================================
 #   Set up queries/read query files   
 #==============================================================================
@@ -318,6 +320,9 @@ def __main__():
             import ripp_modules.grasp.grasp_module as module
         elif peptide_type == "boro":
            import ripp_modules.boro.boro_module as module
+        elif peptide_type == "cyclo":
+            import ripp_modules.cyclo.cyclo_module as module
+
         else:
             logger.error("%s not in supported RiPP types" % (peptide_type))
             continue

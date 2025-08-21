@@ -88,7 +88,7 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                 if "grasp" in record.peptide_types or ("grasp" in args.peptide_types and args.meta==False):
                     record.run_radar(args.output_dir)
                 record.pfam_2_evalue = []
-                if ("boro" in args.peptide_types and args.meta==False) or ("grasp" in args.peptide_types and args.meta ==False) or "boro" in record.peptide_types or "grasp" in record.peptide_types:
+                if ("boro" in args.peptide_types and args.meta==False) or ("grasp" in args.peptide_types and args.meta ==False) or ("cyclo" in args.peptide_types and args.meta==False) or "boro" in record.peptide_types or "grasp" in record.peptide_types or "cyclo" in record.peptide_types:
                     record.get_evalue(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir)
                 record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir,
                                         min_length=master_conf['general']['variables']['precursor_min'], 

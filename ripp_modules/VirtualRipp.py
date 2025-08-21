@@ -95,6 +95,8 @@ def ripp_write_rows(output_dir, peptide_type, accession_id, genus_species, list_
         feature_count=11
     if peptide_type == "grasp":
         feature_count =9
+    if peptide_type == "cyclo":
+        feature_count =8       
     for row in list_of_rows:
         if meta:
             features_writer.writerow([accession_id, locus, genus_species, cluster_accession] + row[0:feature_count] + ["valid_precursor_placeholder", index, ''] + row[feature_count:])
@@ -115,6 +117,8 @@ def run_svm(output_dir, meta, peptide_type, cutoff, feature_count=5):
         feature_count=11
     if peptide_type == "grasp":
         feature_count =9
+    if peptide_type == "cyclo":
+        feature_count =8  
     if meta:
         feature_count +=2
     for row, svm_output_line in zip(features_reader, svm_output_reader):

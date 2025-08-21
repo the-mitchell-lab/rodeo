@@ -56,9 +56,10 @@
 '''
 
 import csv
-
 from sklearn import svm
 from sklearn import preprocessing
+#from scikit-learn import svm
+#from scikit-learn import preprocessing
 import pathlib
 #from rodeo_main import output_dir
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
@@ -119,8 +120,9 @@ class SVMRunner(object):
         elif peptide_type == 'boro':
             self.C_option = 1.1746189430880192
             self.gamma_option = 0.0001
-
-
+        elif peptide_type == 'cyclo':
+            self.C_option = 77.18912785617864
+            self.gamma_option = 0.00018171423466314444
         else:
             # default kernel values
             self.C_option = 2.8E10
