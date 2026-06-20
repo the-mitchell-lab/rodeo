@@ -56,7 +56,8 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-Entrez.email ='ghudson@lbl.gov'
+#Entrez.email = YOUR_EMAIL_HERE
+#API_key = YOUR_NCBI_API_KEY_HERE
 
 @timeout(300)
 def get_gb_handles(prot_accession_id, master_conf, meta=False):
@@ -72,17 +73,17 @@ def get_gb_handles(prot_accession_id, master_conf, meta=False):
     for i in range(tries):
         try:
             if meta:
-                record = Entrez.read(Entrez.esearch("nuccore", term=prot_accession_id))
+                record = Entrez.read(Entrez.esearch("nuccore", term=prot_accession_id, api_key=API_key))
             else:
-                record = Entrez.read(Entrez.esearch("protein",term=prot_accession_id))
+                record = Entrez.read(Entrez.esearch("protein",term=prot_accession_id, api_key=API_key))
             total_count = record["Count"]
             if int(total_count) >= 1:
                 IdList = record["IdList"]
                 time.sleep(0.5)
                 if meta:
-                    link_records = Entrez.elink(dbfrom="nuccore", db="nuccore",id=IdList).read() # check if this step is strictly necessary when querying Genbank in meta mode
+                    link_records = Entrez.elink(dbfrom="nuccore", db="nuccore",id=IdList, api_key=API_key).read() # check if this step is strictly necessary when querying Genbank in meta mode
                 else:
-                    link_records = Entrez.elink(dbfrom="protein", db="nuccore",id=IdList).read()
+                    link_records = Entrez.elink(dbfrom="protein", db="nuccore",id=IdList, api_key=API_key).read()
                 xml = ET.fromstring(link_records)
                 tree = ET.ElementTree(xml)
                 root = tree.getroot()
@@ -92,7 +93,7 @@ def get_gb_handles(prot_accession_id, master_conf, meta=False):
                 for record in root.findall('./LinkSet/LinkSetDb/Link/Id'):
                     nuccore_ids.append(record.text)
 
-                search_handle     = Entrez.epost(db="nuccore", id=",".join(nuccore_ids))
+                search_handle     = Entrez.epost(db="nuccore", id=",".join(nuccore_ids), api_key=API_key)
                 search_results    = Entrez.read(search_handle)
                 webenv,query_key  = search_results["WebEnv"], search_results["QueryKey"] 
 
@@ -106,16 +107,16 @@ def get_gb_handles(prot_accession_id, master_conf, meta=False):
                     if meta:
                         orig_handle = Entrez.efetch(db="nuccore", dbfrom="nuccore", rettype="gbwithparts", 
                                                    retmode="text", retstart=start, retmax=batchSize, 
-                                                   webenv=webenv, query_key=query_key)
+                                                   webenv=webenv, query_key=query_key, api_key=API_key)
                     else:
                         orig_handle = Entrez.efetch(db="nuccore", dbfrom="protein", rettype="gbwithparts", 
                                                     retmode="text", retstart=start, retmax=batchSize, 
-                                                    webenv=webenv, query_key=query_key)
+                                                    webenv=webenv, query_key=query_key, api_key=API_key)
                     handles.append(orig_handle)
             else:
-                prot_record = list(SeqIO.parse(Entrez.efetch("protein",id=prot_accession_id, rettype="gb", retmode="text"), "genbank"))[0]
+                prot_record = list(SeqIO.parse(Entrez.efetch("protein",id=prot_accession_id, rettype="gb", retmode="text", api_key=API_key), "genbank"))[0]
                 nuc_accession_id = prot_record.annotations["db_source"].split(' ')[1]
-                handles = [Entrez.efetch("nuccore",id=nuc_accession_id, rettype="gb", retmode="text")]
+                handles = [Entrez.efetch("nuccore",id=nuc_accession_id, rettype="gb", retmode="text", api_key=API_key)]
             return handles
         except KeyboardInterrupt:
             raise KeyboardInterrupt
@@ -143,7 +144,7 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, meta
     logger.info("Parsing %s handle." % nuccore_accession_id)
     try:
         try:
-            if fasta:
+            if fasta is True:
                 gb_record = SeqIO.parse(gb_handle, "fasta")  # Add code to extract FASTA file from NCBI flat files
             else:
                 gb_record = SeqIO.parse(gb_handle, "genbank")
@@ -185,7 +186,7 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, meta
                         locus_tag = feature.qualifiers['locus_tag'][0]
                     if 'protein_id' in feature.qualifiers.keys():
                         accession_id = feature.qualifiers['protein_id'][0]
-                        direction = feature.strand
+                        direction = feature.location.strand
                         if direction == -1:
                             tmp = start
                             start = end
@@ -198,7 +199,7 @@ def get_record_from_gb_handle(gb_handle, nuccore_accession_id, master_conf, meta
                             if 'inference' in feature.qualifiers.keys():
                                 inference = feature.qualifiers['inference'][0]
                                 splits = inference.split(':')
-                                if splits[-2] == "RefSeq": 
+                                if "RefSeq" in splits: 
                                     accession_id = splits[-1]
                                 else:
                                     accession_id = locus_tag
