@@ -85,10 +85,10 @@ def process_record_worker(unprocessed_records_q, processed_records_q, args, mast
                     record.trim_to_n_orfs(master_conf['general']['variables']['fetch_n'], master_conf['general']['variables']['fetch_distance'])
                 elif master_conf['general']['variables']['fetch_type'].lower() == 'nucs':
                     record.trim_to_n_nucleotides(master_conf['general']['variables']['fetch_n'])
-                if "grasp" in record.peptide_types or ("grasp" in args.peptide_types and args.meta==False):
+                if ("grasp" in record.peptide_types and args.meta==False) or ("grasp" in args.peptide_types and args.meta==False):
                     record.run_radar(args.output_dir)
                 record.pfam_2_evalue = []
-                if ("boro" in args.peptide_types and args.meta==False) or ("grasp" in args.peptide_types and args.meta ==False) or ("cyclo" in args.peptide_types and args.meta==False) or "boro" in record.peptide_types or "grasp" in record.peptide_types or "cyclo" in record.peptide_types:
+                if ("boro" in args.peptide_types and args.meta==False) or ("grasp" in args.peptide_types and args.meta==False) or ("cyclo" in args.peptide_types and args.meta==False) or "boro" in record.peptide_types or "grasp" in record.peptide_types or "cyclo" in record.peptide_types:
                     record.get_evalue(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir)
                 record.annotate_w_hmmer(master_conf['general']['variables']['pfam_dir'], args.custom_hmm, args.output_dir,
                                         min_length=master_conf['general']['variables']['precursor_min'], 
@@ -159,7 +159,7 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
     try:
         for query in queries:
             logger.debug("Fetching %s data" % query)
-            if '.gbk' != query[-4:] and '.gb' != query[-3:] and '.fa' != query[-3:] and '.fasta' != query[-6:] and '.seq' != query[-4:] and '.gbff' != query[-5:]: #accession_id
+            if '.gbk' != query[-4:] and '.gb' != query[-3:] and '.fna' != query[-4:] and '.fa' != query[-3:] and '.fasta' != query[-6:] and '.seq' != query[-4:] and '.gbff' != query[-5:]: #accession_id
                 gb_handles = get_gb_handles(query, master_conf, meta=args.meta)
                 nuccore_accession = query
                 if type(gb_handles) is int:
@@ -187,24 +187,29 @@ def fill_request_queue(queries, processed_records_q, unprocessed_records_q, args
                     continue
             for handle in gb_handles:
                 if args.meta:
-                    if '.fa' == query[-3:] or '.fasta' == query[-6:]: 
+                    if '.fna' == query[-4:] or '.fa' == query[-3:] or '.fasta' == query[-6:]: 
                         records = get_record_from_gb_handle(handle, query, master_conf, meta=True, fasta=True, self_annotate=args.self_annotate, megarun=args.megarun)
                     else:
                         records = get_record_from_gb_handle(handle, query, master_conf, meta=True, self_annotate=args.self_annotate, megarun=args.megarun)
-                    record = records[0]
+                    try:
+                        record = records[0]
+                    except:
+                        record = -2
                 else:
                     record = get_record_from_gb_handle(handle, nuccore_accession, master_conf)
                 if type(record) is int:
                     if record == -1:
                         error_message = "Couldn't process %s Genbank filestream. May be corrupt."\
                           % (query)
+                    elif record == -2:
+                        error_message = "No records of sufficient length detected. Couldn't process %s filestream." % (query)
                     else:
                         error_message = "Unknown error"
                     unprocessed_records_q.put(ErrorReport(query, error_message))
                     if not master_conf['general']['variables']['evaluate_all']:
                         break
                     else:
-                        break
+                        continue
                 logger.debug("Putting %s on the queue" % (record.query_accession_id))
                 if args.meta:
                     for record in records:

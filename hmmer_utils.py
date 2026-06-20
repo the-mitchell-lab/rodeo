@@ -113,7 +113,10 @@ def get_hmmer_info(query, primary_hmm, cust_hmm, output_dir, n=5, e_cutoff=.001,
     """Returns top n hmmscan hits with e_values lower than e_cutoff"""
     try:
         global pid_prefix
-        pid_prefix = output_dir + "/tmp/" + str(os.getpid())
+        if output_dir[-1] == "/":
+            pid_prefix = output_dir + "tmp/" + str(os.getpid())
+        else:
+            pid_prefix = output_dir + "/tmp/" + str(os.getpid())
         _generate_fasta_from_string(query)
         pfam_desc_list = []
         if primary_hmm != "":

@@ -32,7 +32,7 @@
 
 import logging
 import pathlib
-import multiprocessing
+import multiprocess
 import shutil
 import os
 import argparse
@@ -54,7 +54,7 @@ if socket.gethostname() == "rodeo.scs.illinois.edu":
 RODEO_DIR = pathlib.Path(__file__).parent.absolute()
 if WEB_TOOL:
     os.chdir(RODEO_DIR)
-VERSION = "2.3.3"
+VERSION = "3.0"
 VERBOSITY = logging.INFO
 QUEUE_CAP = "END_OF_QUEUE"
 processes = []
@@ -144,33 +144,6 @@ def __main__():
     # add ch to logger
     logger.addHandler(ch)
 
-# =============================================================================
-#   Check for updates
-# =============================================================================
-    try:
-        req = Request('http://update.ripp.rodeo')
-        req.add_header('user-agent', VERSION)
-        mostRecentVersion = urlopen(req, timeout=2.5).read()
-        if mostRecentVersion.decode().strip() != VERSION:
-            logger.info("""
-                        
-            
-                        You are currently running RODEO2 version {}.
-                        The most recent stable version is {}. 
-                        To update your repository, simply run `git pull`
-                        
-                        
-                        """.format(VERSION, mostRecentVersion.decode().strip())) 
-    except urllib.error.URLError:
-            logger.warning("""
-                        
-            
-                        You are currently running RODEO2 version {}.
-                        RODEO is unable to check for the most recent version. 
-                        
-                        
-                        """.format(VERSION)) 
-
 #==============================================================================
 #   Handle configureations
 #==============================================================================
@@ -245,7 +218,7 @@ def __main__():
         args.peptide_types = ['boro', 'cyclo', 'grasp', 'lanthi1', 'lanthi2', 'lanthi3', 'lanthi4', 'lasso', 'linar', 'sacti', 'thio']
     if any(pt in ['cyclo', 'sacti', 'lanthi', 'linar', 'grasp'] for pt in args.peptide_types):
         if not any ("tigr" in hmm_name.lower() for hmm_name in args.custom_hmm):
-            logger.warn("Lanthi, sacti, and/or linar heuristics require TIGRFAM hmm. Make sure its location is specified with the -hmm or --custom_hmm flag.")
+            logger.warning("Lanthi, sacti, and/or linar heuristics require TIGRFAM hmm. Make sure its location is specified with the -hmm or --custom_hmm flag.")
     if "linar" in args.peptide_types and WEB_TOOL:
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/linar/hmms/"))
     elif "linar" in args.peptide_types:
@@ -256,8 +229,6 @@ def __main__():
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/boro/hmms/boro.hmm"))
     if "thio" in args.peptide_types:
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/thio/hmms/thio.hmm"))
-    if "cyclo" in args.peptide_types:
-        args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/cyclo/hmms/cyclo.hmm"))
 #==============================================================================
 #   Set up queries/read query files   
 #==============================================================================
@@ -322,7 +293,6 @@ def __main__():
            import ripp_modules.boro.boro_module as module
         elif peptide_type == "cyclo":
             import ripp_modules.cyclo.cyclo_module as module
-
         else:
             logger.error("%s not in supported RiPP types" % (peptide_type))
             continue
@@ -338,16 +308,17 @@ def __main__():
 #   Set up paralellization (worker processes and fetch process)
 #==============================================================================
     query_no = 0
-    m = multiprocessing.Manager()
+    multiprocess.set_start_method('spawn')
+    m = multiprocess.Manager()
     processed_records_q = m.Queue(max(args.num_cores, 60))
     unprocessed_records_q = m.Queue(max(args.num_cores, 60))
 
     #Nest all in try in case of KeyboardInterrupt
     try:
         for i in range(args.num_cores):
-            processes.append(multiprocessing.Process(target=record_processing.process_record_worker, args=(unprocessed_records_q, processed_records_q, args, master_conf, ripp_modules, i)))
+            processes.append(multiprocess.Process(target=record_processing.process_record_worker, args=(unprocessed_records_q, processed_records_q, args, master_conf, ripp_modules, i)))
             processes[-1].start()
-        request_proc = multiprocessing.Process(target=fill_request_queue, args=(queries, processed_records_q, unprocessed_records_q, args, master_conf, ripp_modules))
+        request_proc = multiprocess.Process(target=fill_request_queue, args=(queries, processed_records_q, unprocessed_records_q, args, master_conf, ripp_modules))
         request_proc.start()
 
         record = processed_records_q.get()
@@ -398,7 +369,7 @@ def __main__():
                     row = [query, record.cluster_genus_species, record.cluster_accession, 
                         orf.start, orf.end, direction, orf.sequence]
                 module.main_write_row(output_dir, row)
-            if args.prodigal and args.megarun == False:
+            if args.prodigal:
                 if len(prod_results) > 1:
                     for orf in (record.intergenic_orfs + record.CDSs):
                         prod_start, prod_end = record.find_prod_coordinates(min(orf.start, orf.end), max(orf.start, orf.end))
