@@ -9,22 +9,26 @@
 # University of Illinois
 # Department of Chemistry
 #
-# Copyright (C) 2017 Douglas A. Mitchell
-# University of Illinois
-# Department of Chemistry
+# Copyright (C) 2026 Shravan R. Dommaraju
+# Vanderbilt University
+# Department of Biochemistry
+#
+# Copyright (C) 2026 Douglas A. Mitchell
+# Vanderbilt University
+# Department of Biochemistry
 #
 # License: GNU Affero General Public License v3 or later
 # Complete license availabel in the accompanying LICENSE.txt.
 # or <http://www.gnu.org/licenses/>.
 #
-# This file is part of RODEO2.
+# This file is part of RODEO.
 #
-# RODEO2 is free software: you can redistribute it and/or modify
+# RODEO is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# RODEO2 is distributed in the hope that it will be useful,
+# RODEO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
@@ -48,12 +52,7 @@ except ImportError:
     import urllib2
     from urllib2 import Request, urlopen  # Python 2
 
-WEB_TOOL = False
-if socket.gethostname() == "rodeo.scs.illinois.edu":
-    WEB_TOOL = True
 RODEO_DIR = pathlib.Path(__file__).parent.absolute()
-if WEB_TOOL:
-    os.chdir(RODEO_DIR)
 VERSION = "3.0"
 VERBOSITY = logging.INFO
 QUEUE_CAP = "END_OF_QUEUE"
@@ -161,8 +160,6 @@ def __main__():
     master_conf["general"]["variables"]["precursor_min"] = min([master_conf[x]["variables"]["precursor_min"] for x in ["general"] + args.peptide_types])
     master_conf["general"]["variables"]["precursor_max"] = max([master_conf[x]["variables"]["precursor_max"] for x in ["general"] + args.peptide_types])
     general_conf = master_conf['general']
-    if WEB_TOOL:
-        general_conf['variables']['pfam_dir'] = "/home/ubuntu/website/go/rodeo2/hmm_dir/Pfam-A.hmm"
         
 #==============================================================================
 #   Set up output directory
@@ -219,9 +216,7 @@ def __main__():
     if any(pt in ['cyclo', 'sacti', 'lanthi', 'linar', 'grasp'] for pt in args.peptide_types):
         if not any ("tigr" in hmm_name.lower() for hmm_name in args.custom_hmm):
             logger.warning("Lanthi, sacti, and/or linar heuristics require TIGRFAM hmm. Make sure its location is specified with the -hmm or --custom_hmm flag.")
-    if "linar" in args.peptide_types and WEB_TOOL:
-        args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/linar/hmms/"))
-    elif "linar" in args.peptide_types:
+    if "linar" in args.peptide_types:
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/linar/hmms/linar.hmm"))
     if "grasp" in args.peptide_types:
         args.custom_hmm.append(os.path.join(RODEO_DIR, "ripp_modules/grasp/hmms/grasp.hmm"))

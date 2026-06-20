@@ -8,22 +8,26 @@
 # University of Illinois
 # Department of Chemistry
 #
-# Copyright (C) 2017 Douglas A. Mitchell
-# University of Illinois
-# Department of Chemistry
+# Copyright (C) 2026 Shravan R. Dommaraju
+# Vanderbilt University
+# Department of Biochemistry
+#
+# Copyright (C) 2026 Douglas A. Mitchell
+# Vanderbilt University
+# Department of Biochemistry
 #
 # License: GNU Affero General Public License v3 or later
 # Complete license availabel in the accompanying LICENSE.txt.
 # or <http://www.gnu.org/licenses/>.
 #
-# This file is part of RODEO2.
+# This file is part of RODEO.
 #
-# RODEO2 is free software: you can redistribute it and/or modify
+# RODEO is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# RODEO2 is distributed in the hope that it will be useful,
+# RODEO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.

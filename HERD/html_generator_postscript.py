@@ -60,7 +60,7 @@ def write_header(html_file):
      
     <script src='https://img.jgi.doe.gov//js/overlib.js'></script>
     <div class="container">
-    <h1 align="center" id="header">RODEO2</h1>
+    <h1 align="center" id="header">RODEO</h1>
     """)
 
 def get_fill_color(cds, filter_list):
