@@ -46,10 +46,6 @@ from rodeo_main import VERBOSITY
 import pathlib
 FILE_DIR = pathlib.Path(__file__).parent.absolute()
 
-WEB_TOOL = False
-if socket.gethostname() == "rodeo.scs.illinois.edu":
-    WEB_TOOL = True
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(VERBOSITY)
@@ -295,10 +291,7 @@ class VirtualRipp(object):
         try:
             with open(self.output_dir + "/tmp/" + pid + "FIMO.seq", 'w+') as tfile:
                 tfile.write(">query\n%s" % (self.sequence))
-            if WEB_TOOL:
-                command = ["/home/ubuntu/meme/bin/fimo --text --verbosity 1 " + query_motif_file + ' ' + self.output_dir + "/tmp/" + pid + "FIMO.seq"]
-            else:
-                command = ["fimo --text --verbosity 1 " + query_motif_file + ' ' + self.output_dir +  "/tmp/" + pid + "FIMO.seq"]
+            command = ["fimo --text --verbosity 1 " + query_motif_file + ' ' + self.output_dir +  "/tmp/" + pid + "FIMO.seq"]
             try:
                 out, err, retcode = execute(command)
             except OSError:

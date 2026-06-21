@@ -167,17 +167,17 @@ class Ripp(VirtualRipp):
             motif = 1
         if match is None:
             motif = 2
-            match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{5,15}\*)', self.sequence + '*')
+            match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{5,15}\\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{15,25}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{15,25}\\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{26,30}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{7,10}(D|E)[A-Z]{26,30}\\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{5,15}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{5,15}\\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{15,25}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{15,25}\\*)', self.sequence + '*')
             if match is None:
-                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{26,30}\*)', self.sequence + '*')
+                match = re.search('(T[A-Z]{10,18}(D|E)[A-Z]{26,30}\\*)', self.sequence + '*')
         if match is not None:
             if motif == 1:
                 self.split_index = match.end() + 1

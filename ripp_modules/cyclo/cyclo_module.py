@@ -463,7 +463,7 @@ class Ripp(VirtualRipp):
         #Percentages of AAs in core
         core_analysis = ProteinAnalysis(self.core, monoisotopic=True) 
         for aa in "ARDNCQEGHILKMFPSTWYV":
-            scoring_csv_columns.append(core_analysis.get_amino_acids_percent()[aa])
+            scoring_csv_columns.append(core_analysis.amino_acids_percent[aa])
         #Aromatics in core
         scoring_csv_columns.append(sum([self.core.count(aa) for aa in "FWY"]))
         #Neg charged in core
@@ -484,7 +484,7 @@ class Ripp(VirtualRipp):
         #Percentages of AAs in precursor
         seq_analysis = ProteinAnalysis(self.sequence, monoisotopic=True)
         for aa in "ARDNCQEGHILKMFPSTWYV":
-            scoring_csv_columns.append(seq_analysis.get_amino_acids_percent()[aa])
+            scoring_csv_columns.append(seq_analysis.amino_acids_percent[aa])
         #Aromatics in precursor
         scoring_csv_columns.append(sum([self.sequence.count(aa) for aa in "FWY"]))
         #Neg charged in precursor
@@ -505,7 +505,7 @@ class Ripp(VirtualRipp):
         #Percentages of AAs in core
         last_third_analysis = ProteinAnalysis(self.last_third, monoisotopic=True) 
         for aa in "ARDNCQEGHILKMFPSTWYV":
-            scoring_csv_columns.append(last_third_analysis.get_amino_acids_percent()[aa])
+            scoring_csv_columns.append(last_third_analysis.amino_acids_percent[aa])
         #Aromatics in core
         scoring_csv_columns.append(sum([self.last_third.count(aa) for aa in "FWY"]))
         #Neg charged in core
