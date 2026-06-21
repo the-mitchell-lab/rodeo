@@ -11,6 +11,12 @@ Lastly, I have one important note. IF YOU WANT TO KILL RODEO/END THE PROCESS, US
 * Meme Suite >=4.12
 * Biopython >=1.69
 * HMMER >=3.1b2
+* Multiprocess
+* Prodigal
+* NetworkX (HERD)
+* Matplotlib (HERD)
+* Hdbscan (HERD)
+* Pandas (HERD)
 * [RREFinder](https://github.com/Alexamk/RREFinder)
 * [RADAR](https://github.com/AndreasHeger/radar)
 * [fasta2](https://fasta.bioch.virginia.edu/wrpearson/fasta/fasta2/)
